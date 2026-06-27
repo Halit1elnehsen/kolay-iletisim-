@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpeakBridge - Turist Yardimci</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
+        :root { --primary: #6366F1; --primary-dark: #4F46E5; --primary-light: #EEF2FF; --secondary: #F59E0B; --danger: #EF4444; --danger-light: #FEE2E2; --success: #10B981; --success-light: #D1FAE5; --dark: #1E293B; --gray-100: #F8FAFC; --gray-200: #E2E8F0; --gray-300: #CBD5E1; --gray-400: #94A3B8; --gray-500: #64748B; --gray-600: #475569; --gray-700: #334155; --white: #ffffff; --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); }
+        body { background: #0F172A; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .phone-frame { width: 390px; height: 844px; background: var(--white); border-radius: 50px; overflow: hidden; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 12px #1E293B, 0 0 0 14px #334155; display: flex; flex-direction: column; }
+        .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 160px; height: 34px; background: #1E293B; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 1000; }
+        .notch-camera { position: absolute; top: 8px; right: 20px; width: 12px; height: 12px; background: #0F172A; border-radius: 50%; border: 2px solid #334155; }
+        .status-bar { height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0 28px; padding-top: 12px; font-size: 14px; font-weight: 600; color: var(--dark); z-index: 999; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 14px; }
+        .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; scrollbar-width: none; }
+        .app-content::-webkit-scrollbar { display: none; }
+        .home-screen { padding: 0 20px 100px 20px; display: none; }
+        .home-screen.active { display: block; }
+        .header { margin-top: 8px; margin-bottom: 24px; }
+        .header-greeting { font-size: 14px; color: var(--gray-500); font-weight: 500; }
+        .header-title { font-size: 28px; font-weight: 800; color: var(--dark); margin-top: 2px; letter-spacing: -0.5px; }
+        .header-subtitle { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+        .quick-translate-card { background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A78BFA 100%); border-radius: 24px; padding: 24px; color: white; margin-bottom: 24px; position: relative; overflow: hidden; }
+        .quick-translate-card::before { content: ''; position: absolute; top: -50%; right: -30%; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .quick-translate-card::after { content: ''; position: absolute; bottom: -30%; left: -20%; width: 150px; height: 150px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+        .translate-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; z-index: 1; }
+        .translate-card-title { font-size: 18px; font-weight: 700; }
+        .translate-card-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .language-selector { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; position: relative; z-index: 1; }
+        .lang-pill { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .lang-pill:hover { background: rgba(255,255,255,0.3); }
+        .lang-flag { font-size: 20px; }
+        .swap-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; border: none; color: white; }
+        .swap-btn:hover { background: rgba(255,255,255,0.4); transform: rotate(180deg); }
+        .translate-input-area { position: relative; z-index: 1; }
+        .translate-input { width: 100%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 16px; color: white; font-size: 16px; outline: none; resize: none; min-height: 80px; backdrop-filter: blur(10px); }
+        .translate-input::placeholder { color: rgba(255,255,255,0.6); }
+        .translate-actions { display: flex; gap: 10px; margin-top: 12px; position: relative; z-index: 1; }
+        .translate-btn { flex: 1; padding: 14px; border-radius: 14px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+        .translate-btn-primary { background: white; color: var(--primary); }
+        .translate-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .translate-btn-secondary { background: rgba(255,255,255,0.2); color: white; }
+        .translate-btn-secondary:hover { background: rgba(255,255,255,0.3); }
+        .section-title { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .section-link { font-size: 13px; color: var(--primary); font-weight: 600; cursor: pointer; }
+        .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        .feature-card { background: var(--white); border: 2px solid var(--gray-200); border-radius: 20px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .feature-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .feature-card:active { transform: scale(0.98); }
+        .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; }
+        .feature-icon-blue { background: var(--primary-light); color: var(--primary); }
+        .feature-icon-orange { background: #FEF3C7; color: var(--secondary); }
+        .feature-icon-red { background: var(--danger-light); color: var(--danger); }
+        .feature-icon-green { background: var(--success-light); color: var(--success); }
+        .feature-icon-purple { background: #F3E8FF; color: #9333EA; }
+        .feature-icon-teal { background: #CCFBF1; color: #0D9488; }
+        .feature-icon-map { background: #DBEAFE; color: #2563EB; }
+        .feature-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+        .feature-desc { font-size: 12px; color: var(--gray-500); line-height: 1.4; }
+        .feature-badge { position: absolute; top: 12px; right: 12px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; }
+        .bottom-nav { height: 70px; background: var(--white); border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; align-items: center; padding: 0 16px; padding-bottom: 8px; z-index: 1000; position: relative; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; padding: 8px 24px; border-radius: 16px; }
+        .nav-item:hover { background: var(--gray-100); }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active .nav-icon { background: var(--primary-light); }
+        .nav-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s; }
+        .nav-label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+        .nav-item.active .nav-label { color: var(--primary); }
+        .screen { display: none; padding: 0 20px 100px 20px; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .screen-header { display: flex; align-items: center; gap: 12px; margin-top: 8px; margin-bottom: 24px; }
+        .back-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--gray-100); border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--dark); cursor: pointer; transition: all 0.2s; }
+        .back-btn:hover { background: var(--gray-200); }
+        .screen-title { font-size: 22px; font-weight: 800; color: var(--dark); }
+        .emergency-banner { background: linear-gradient(135deg, #EF4444, #DC2626); border-radius: 20px; padding: 20px; color: white; margin-bottom: 20px; text-align: center; }
+        .emergency-banner-icon { font-size: 40px; margin-bottom: 8px; }
+        .emergency-banner-title { font-size: 18px; font-weight: 700; }
+        .emergency-banner-desc { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+        .emergency-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .emergency-item { display: flex; align-items: center; gap: 14px; padding: 18px; background: var(--danger-light); border: 2px solid #FECACA; border-radius: 18px; cursor: pointer; transition: all 0.2s; }
+        .emergency-item:hover { background: #FECACA; transform: translateX(4px); }
+        .emergency-item-icon { width: 52px; height: 52px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--danger); box-shadow: var(--shadow-sm); }
+        .emergency-item-content { flex: 1; }
+        .emergency-item-title { font-size: 16px; font-weight: 700; color: var(--danger); }
+        .emergency-item-desc { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+        .emergency-item-play { width: 44px; height: 44px; border-radius: 50%; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; border: none; cursor: pointer; transition: all 0.2s; }
+        .emergency-item-play:hover { transform: scale(1.1); }
+        .taxi-map-placeholder { width: 100%; height: 200px; background: linear-gradient(135deg, #E0E7FF, #C7D2FE); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .taxi-map-icon { font-size: 48px; color: var(--primary); margin-bottom: 8px; position: relative; z-index: 1; }
+        .taxi-map-text { font-size: 14px; color: var(--primary); font-weight: 600; position: relative; z-index: 1; }
+        .taxi-destinations { display: flex; flex-direction: column; gap: 10px; }
+        .taxi-destination { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--gray-100); border-radius: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .taxi-destination:hover { border-color: var(--primary); background: var(--primary-light); }
+        .taxi-destination-icon { width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); box-shadow: var(--shadow-sm); }
+        .taxi-destination-info { flex: 1; }
+        .taxi-destination-name { font-size: 15px; font-weight: 700; color: var(--dark); }
+        .taxi-destination-detail { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+        .taxi-destination-price { font-size: 14px; font-weight: 700; color: var(--success); }
+        .restaurant-categories { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 4px; scrollbar-width: none; }
+        .restaurant-categories::-webkit-scrollbar { display: none; }
+        .restaurant-category { padding: 10px 20px; background: var(--gray-100); border-radius: 100px; font-size: 14px; font-weight: 600; color: var(--gray-600); cursor: pointer; transition: all 0.2s; white-space: nowrap; border: 2px solid transparent; }
+        .restaurant-category:hover, .restaurant-category.active { background: var(--primary); color: white; }
+        .restaurant-phrases { display: flex; flex-direction: column; gap: 10px; }
+        .restaurant-phrase { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--white); border: 2px solid var(--gray-200); border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+        .restaurant-phrase:hover { border-color: var(--secondary); background: #FEF3C7; }
+        .restaurant-phrase-number { width: 36px; height: 36px; background: var(--secondary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+        .restaurant-phrase-text { flex: 1; }
+        .restaurant-phrase-tr { font-size: 15px; font-weight: 700; color: var(--dark); }
+        .restaurant-phrase-en { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+        .restaurant-phrase-play { width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); color: white; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .restaurant-phrase-play:hover { transform: scale(1.1); }
+        .camera-view { width: 100%; height: 400px; background: linear-gradient(135deg, #1E293B, #0F172A); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .camera-icon { font-size: 64px; color: rgba(255,255,255,0.3); margin-bottom: 16px; position: relative; z-index: 1; }
+        .camera-text { font-size: 16px; color: rgba(255,255,255,0.6); font-weight: 600; position: relative; z-index: 1; }
+        .camera-subtext { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; position: relative; z-index: 1; }
+        .camera-controls { display: flex; justify-content: center; gap: 20px; }
+        .camera-btn { width: 70px; height: 70px; border-radius: 50%; background: var(--primary); color: white; border: 4px solid var(--white); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); transition: all 0.2s; }
+        .camera-btn:hover { transform: scale(1.1); }
+        .camera-btn-secondary { width: 50px; height: 50px; border-radius: 50%; background: var(--gray-700); color: white; border: 2px solid var(--gray-600); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .culture-cards { display: flex; flex-direction: column; gap: 12px; }
+        .culture-card { display: flex; gap: 14px; padding: 18px; background: var(--white); border: 2px solid var(--gray-200); border-radius: 18px; cursor: pointer; transition: all 0.2s; }
+        .culture-card:hover { border-color: var(--primary); transform: translateX(4px); box-shadow: var(--shadow); }
+        .culture-card-image { width: 80px; height: 80px; border-radius: 14px; background: linear-gradient(135deg, var(--primary-light), #E0E7FF); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; }
+        .culture-card-content { flex: 1; }
+        .culture-card-title { font-size: 16px; font-weight: 700; color: var(--dark); }
+        .culture-card-desc { font-size: 13px; color: var(--gray-500); margin-top: 4px; line-height: 1.5; }
+        .culture-card-tag { display: inline-block; padding: 4px 10px; background: var(--primary-light); color: var(--primary); font-size: 11px; font-weight: 600; border-radius: 100px; margin-top: 8px; }
+        .offline-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--success-light); color: var(--success); font-size: 12px; font-weight: 700; border-radius: 100px; margin-bottom: 16px; }
+        .offline-badge i { font-size: 10px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-end; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+        .modal-sheet { background: white; width: 100%; max-width: 390px; border-radius: 30px 30px 0 0; padding: 24px; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-handle { width: 40px; height: 5px; background: var(--gray-300); border-radius: 100px; margin: 0 auto 20px; }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 20px; }
+        .language-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+        .language-option { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; cursor: pointer; transition: all 0.2s; }
+        .language-option:hover { background: var(--gray-100); }
+        .language-option.selected { background: var(--primary-light); border: 2px solid var(--primary); }
+        .language-flag { font-size: 28px; }
+        .language-name { font-size: 15px; font-weight: 600; color: var(--dark); flex: 1; }
+        .language-check { color: var(--primary); font-size: 18px; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--dark); color: white; padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 600; z-index: 3000; opacity: 0; transition: all 0.3s ease; white-space: nowrap; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        @media (max-width: 430px) { .phone-frame { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; } body { padding: 0; } }
+
+        /* MAP SCREEN STYLES */
+        .map-container { width: 100%; height: 300px; background: linear-gradient(135deg, #DBEAFE, #BFDBFE); border-radius: 24px; position: relative; overflow: hidden; margin-bottom: 20px; border: 3px solid var(--primary-light); }
+        .map-container::before { content: ''; position: absolute; width: 100%; height: 100%; background: linear-gradient(90deg, transparent 48%, rgba(37,99,235,0.15) 49%, rgba(37,99,235,0.15) 51%, transparent 52%), linear-gradient(0deg, transparent 48%, rgba(37,99,235,0.15) 49%, rgba(37,99,235,0.15) 51%, transparent 52%); background-size: 40px 40px; }
+        .map-pin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); font-size: 48px; z-index: 2; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); animation: bouncePin 2s ease-in-out infinite; }
+        @keyframes bouncePin { 0%, 100% { transform: translate(-50%, -100%) translateY(0); } 50% { transform: translate(-50%, -100%) translateY(-10px); } }
+        .map-location-label { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 8px 20px; border-radius: 100px; font-size: 14px; font-weight: 700; z-index: 2; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .map-location-label i { margin-right: 6px; color: var(--danger); }
+        .location-info-card { background: var(--white); border: 2px solid var(--gray-200); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+        .location-info-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .location-info-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #DBEAFE, #BFDBFE); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #2563EB; }
+        .location-info-title { font-size: 18px; font-weight: 800; color: var(--dark); }
+        .location-info-subtitle { font-size: 13px; color: var(--gray-500); }
+        .location-detail-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-200); }
+        .location-detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .location-detail-icon { width: 40px; height: 40px; background: var(--gray-100); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); flex-shrink: 0; }
+        .location-detail-content { flex: 1; }
+        .location-detail-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
+        .location-detail-value { font-size: 15px; font-weight: 700; color: var(--dark); margin-top: 2px; }
+        .nearby-places { display: flex; flex-direction: column; gap: 10px; }
+        .nearby-place { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--gray-100); border-radius: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .nearby-place:hover { border-color: var(--primary); background: var(--primary-light); }
+        .nearby-place-icon { width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
+        .nearby-place-info { flex: 1; }
+        .nearby-place-name { font-size: 15px; font-weight: 700; color: var(--dark); }
+        .nearby-place-distance { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+        .nearby-place-navigate { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; border: none; cursor: pointer; transition: all 0.2s; }
+        .nearby-place-navigate:hover { transform: scale(1.1); background: var(--primary-dark); }
+        .phrase-list { display: flex; flex-direction: column; gap: 8px; }
+        .phrase-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--gray-100); border-radius: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .phrase-item:hover { border-color: var(--primary); background: var(--primary-light); }
+        .phrase-icon { width: 40px; height: 40px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 16px; box-shadow: var(--shadow-sm); }
+        .phrase-content { flex: 1; }
+        .phrase-text { font-size: 14px; font-weight: 600; color: var(--dark); }
+        .phrase-translation { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+        .phrase-play { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+        .phrase-play:hover { transform: scale(1.1); background: var(--primary-dark); }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="notch"><div class="notch-camera"></div></div>
+
+        <div class="status-bar">
+            <span>09:41</span>
+            <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+        </div>
+
+        <div class="app-content">
+            <!-- HOME SCREEN -->
+            <div class="home-screen active" id="homeScreen">
+                <div class="header">
+                    <div class="header-greeting">Merhaba! </div>
+                    <div class="header-title">SpeakBridge</div>
+                    <div class="header-subtitle">Turkiye'de iletisim hic bu kadar kolay olmamisti</div>
+                </div>
+
+                <div class="quick-translate-card">
+                    <div class="translate-card-header">
+                        <div class="translate-card-title">Hizli Ceviri</div>
+                        <div class="translate-card-icon"><i class="fas fa-language"></i></div>
+                    </div>
+                    <div class="language-selector">
+                        <div class="lang-pill" onclick="openLanguageModal()"><span class="lang-flag">TR</span><span>Turkce</span></div>
+                        <button class="swap-btn" onclick="swapLanguages()"><i class="fas fa-exchange-alt"></i></button>
+                        <div class="lang-pill" onclick="openLanguageModal()"><span class="lang-flag">EN</span><span>English</span></div>
+                    </div>
+                    <div class="translate-input-area">
+                        <textarea class="translate-input" placeholder="Cevirmek istediginiz metni yazin..." rows="2"></textarea>
+                        <div class="translate-actions">
+                            <button class="translate-btn translate-btn-primary" onclick="showToast('Ceviri yapiliyor...')"><i class="fas fa-paper-plane"></i>Cevir</button>
+                            <button class="translate-btn translate-btn-secondary" onclick="showToast('Sesli ceviri baslatildi')"><i class="fas fa-microphone"></i>Konus</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title"><span>Ozellikler</span><span class="section-link">Tumu</span></div>
+
+                <div class="features-grid">
+                    <div class="feature-card" onclick="navigateTo('emergencyScreen')"><div class="feature-icon-wrapper feature-icon-red"><i class="fas fa-first-aid"></i></div><div class="feature-title">Acil Durum</div><div class="feature-desc">Tek dokunusla yardim cumleleri</div><div class="feature-badge">YENI</div></div>
+                    <div class="feature-card" onclick="navigateTo('taxiScreen')"><div class="feature-icon-wrapper feature-icon-blue"><i class="fas fa-taxi"></i></div><div class="feature-title">Taksi Modu</div><div class="feature-desc">Soforle kolay iletisim</div></div>
+                    <div class="feature-card" onclick="navigateTo('restaurantScreen')"><div class="feature-icon-wrapper feature-icon-orange"><i class="fas fa-utensils"></i></div><div class="feature-title">Restoran</div><div class="feature-desc">Siparis ve diyet cumleleri</div></div>
+                    <div class="feature-card" onclick="navigateTo('cameraScreen')"><div class="feature-icon-wrapper feature-icon-purple"><i class="fas fa-camera"></i></div><div class="feature-title">Kamera Ceviri</div><div class="feature-desc">Menu ve tabelalari oku</div></div>
+                    <div class="feature-card" onclick="navigateTo('cultureScreen')"><div class="feature-icon-wrapper feature-icon-green"><i class="fas fa-landmark"></i></div><div class="feature-title">Kultur Rehberi</div><div class="feature-desc">Turk kulturu hakkinda bilgi</div></div>
+                </div>
+            </div>
+
+            <!-- EMERGENCY SCREEN -->
+            <div class="screen" id="emergencyScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Acil Durum</div></div>
+                <div class="emergency-banner"><div class="emergency-banner-icon">!</div><div class="emergency-banner-title">Acil Durum Yardimi</div><div class="emergency-banner-desc">Tek dokunusla onemli cumleleri sesli oynatin</div></div>
+                <div class="offline-badge"><i class="fas fa-wifi-slash"></i>Internetsiz calisir</div>
+                <div class="emergency-grid">
+                    <div class="emergency-item" onclick="showToast('Yardim edin! sesli oynatiliyor')"><div class="emergency-item-icon">!</div><div class="emergency-item-content"><div class="emergency-item-title">Yardim edin!</div><div class="emergency-item-desc">Help me! / Au secours!</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                    <div class="emergency-item" onclick="showToast('Hastane cumlesi oynatiliyor')"><div class="emergency-item-icon">H</div><div class="emergency-item-content"><div class="emergency-item-title">Hastaneye gitmek istiyorum</div><div class="emergency-item-desc">I need to go to the hospital</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                    <div class="emergency-item" onclick="showToast('Polis cumlesi oynatiliyor')"><div class="emergency-item-icon">P</div><div class="emergency-item-content"><div class="emergency-item-title">Polisi cagirin</div><div class="emergency-item-desc">Call the police!</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                    <div class="emergency-item" onclick="showToast('Kayboldum cumlesi oynatiliyor')"><div class="emergency-item-icon">M</div><div class="emergency-item-content"><div class="emergency-item-title">Kayboldum</div><div class="emergency-item-desc">I am lost</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                    <div class="emergency-item" onclick="showToast('Alerji cumlesi oynatiliyor')"><div class="emergency-item-icon">A</div><div class="emergency-item-content"><div class="emergency-item-title">Alerjim var</div><div class="emergency-item-desc">I have an allergy</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                    <div class="emergency-item" onclick="showToast('Pasaport cumlesi oynatiliyor')"><div class="emergency-item-icon">PP</div><div class="emergency-item-content"><div class="emergency-item-title">Pasaportumu kaybettim</div><div class="emergency-item-desc">I lost my passport</div></div><button class="emergency-item-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></button></div>
+                </div>
+            </div>
+
+            <!-- TAXI SCREEN -->
+            <div class="screen" id="taxiScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Taksi Modu</div></div>
+                <div class="taxi-map-placeholder"><div class="taxi-map-icon">M</div><div class="taxi-map-text">Harita gorunumu</div></div>
+                <div class="offline-badge"><i class="fas fa-wifi-slash"></i>Internetsiz calisir</div>
+                <div class="section-title"><span>Populer Destinasyonlar</span></div>
+                <div class="taxi-destinations">
+                    <div class="taxi-destination" onclick="showToast('Sultanahmet rotasi gosteriliyor')"><div class="taxi-destination-icon">A</div><div class="taxi-destination-info"><div class="taxi-destination-name">Sultanahmet (Ayasofya)</div><div class="taxi-destination-detail">Tarihi Yarimada, Istanbul</div></div><div class="taxi-destination-price">~150TL</div></div>
+                    <div class="taxi-destination" onclick="showToast('Taksim rotasi gosteriliyor')"><div class="taxi-destination-icon">T</div><div class="taxi-destination-info"><div class="taxi-destination-name">Taksim Meydani</div><div class="taxi-destination-detail">Beyoglu, Istanbul</div></div><div class="taxi-destination-price">~120TL</div></div>
+                    <div class="taxi-destination" onclick="showToast('Kapalicarsi rotasi gosteriliyor')"><div class="taxi-destination-icon">S</div><div class="taxi-destination-info"><div class="taxi-destination-name">Kapalicarsi</div><div class="taxi-destination-detail">Fatih, Istanbul</div></div><div class="taxi-destination-price">~140TL</div></div>
+                    <div class="taxi-destination" onclick="showToast('Havaalani rotasi gosteriliyor')"><div class="taxi-destination-icon">P</div><div class="taxi-destination-info"><div class="taxi-destination-name">Istanbul Havalimani</div><div class="taxi-destination-detail">Arnavutkoy, Istanbul</div></div><div class="taxi-destination-price">~450TL</div></div>
+                </div>
+                <div style="margin-top: 20px;"><div class="section-title"><span>Hizli Cumleler</span></div>
+                <div class="phrase-list">
+                    <div class="phrase-item" onclick="showToast('Taksi cumlesi oynatiliyor')"><div class="phrase-icon"><i class="fas fa-taxi"></i></div><div class="phrase-content"><div class="phrase-text">Taksiye ihtiyacim var</div><div class="phrase-translation">I need a taxi</div></div><button class="phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="phrase-item" onclick="showToast('Ucret cumlesi oynatiliyor')"><div class="phrase-icon"><i class="fas fa-money-bill-wave"></i></div><div class="phrase-content"><div class="phrase-text">Taksimetre acar misiniz?</div><div class="phrase-translation">Please turn on the meter</div></div><button class="phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                </div></div>
+            </div>
+
+            <!-- RESTAURANT SCREEN -->
+            <div class="screen" id="restaurantScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Restoran Yardimi</div></div>
+                <div class="offline-badge"><i class="fas fa-wifi-slash"></i>Internetsiz calisir</div>
+                <div class="restaurant-categories"><div class="restaurant-category active">Siparis</div><div class="restaurant-category">Diyet</div><div class="restaurant-category">Alerji</div><div class="restaurant-category">Hesap</div><div class="restaurant-category">Sikayet</div></div>
+                <div class="restaurant-phrases">
+                    <div class="restaurant-phrase" onclick="showToast('Vejeteryan cumlesi oynatiliyor')"><div class="restaurant-phrase-number">1</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Vejeteryan yemek istiyorum</div><div class="restaurant-phrase-en">I am vegetarian</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="restaurant-phrase" onclick="showToast('Acisiz cumlesi oynatiliyor')"><div class="restaurant-phrase-number">2</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Acisiz olsun lutfen</div><div class="restaurant-phrase-en">No spicy please</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="restaurant-phrase" onclick="showToast('Alerji cumlesi oynatiliyor')"><div class="restaurant-phrase-number">3</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Icinde findik var mi?</div><div class="restaurant-phrase-en">Does it contain nuts?</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="restaurant-phrase" onclick="showToast('Hesap cumlesi oynatiliyor')"><div class="restaurant-phrase-number">4</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Hesap alabilir miyim?</div><div class="restaurant-phrase-en">Can I get the bill?</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="restaurant-phrase" onclick="showToast('Su cumlesi oynatiliyor')"><div class="restaurant-phrase-number">5</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Bir bardak su alabilir miyim?</div><div class="restaurant-phrase-en">Can I have a glass of water?</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="restaurant-phrase" onclick="showToast('Menu cumlesi oynatiliyor')"><div class="restaurant-phrase-number">6</div><div class="restaurant-phrase-text"><div class="restaurant-phrase-tr">Menuyu getirir misiniz?</div><div class="restaurant-phrase-en">Can I see the menu?</div></div><button class="restaurant-phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                </div>
+            </div>
+
+            <!-- CAMERA SCREEN -->
+            <div class="screen" id="cameraScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Kamera Ceviri</div></div>
+                <div class="camera-view"><div class="camera-icon">C</div><div class="camera-text">Kamerayi menuye veya tabelaya tutun</div><div class="camera-subtext">Yazi otomatik olarak cevrilecek</div></div>
+                <div class="camera-controls"><button class="camera-btn-secondary" onclick="showToast('Galeriden sec')"><i class="fas fa-image"></i></button><button class="camera-btn" onclick="showToast('Fotograf cekiliyor...')"><i class="fas fa-camera"></i></button><button class="camera-btn-secondary" onclick="showToast('Flash acik')"><i class="fas fa-bolt"></i></button></div>
+                <div style="margin-top: 24px;"><div class="section-title"><span>Son Ceviriler</span></div>
+                <div class="phrase-list">
+                    <div class="phrase-item"><div class="phrase-icon"><i class="fas fa-utensils"></i></div><div class="phrase-content"><div class="phrase-text">"Kuru Fasulye - 85TL"</div><div class="phrase-translation">"Beans Stew - 85TL"</div></div></div>
+                    <div class="phrase-item"><div class="phrase-icon"><i class="fas fa-bus"></i></div><div class="phrase-content"><div class="phrase-text">"Taksim - Besiktas"</div><div class="phrase-translation">"Taksim - Besiktas"</div></div></div>
+                </div></div>
+            </div>
+
+            <!-- CULTURE SCREEN -->
+            <div class="screen" id="cultureScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Kultur Rehberi</div></div>
+                <div class="offline-badge"><i class="fas fa-wifi-slash"></i>Internetsiz calisir</div>
+                <div class="culture-cards">
+                    <div class="culture-card" onclick="showToast('Bahsis kulturu aciliyor')"><div class="culture-card-image">$</div><div class="culture-card-content"><div class="culture-card-title">Bahsis Kulturu</div><div class="culture-card-desc">Turkiye'de bahsis verme aliskanliklari ve ne kadar verilmesi gerektigi</div><div class="culture-card-tag">Gunluk Hayat</div></div></div>
+                    <div class="culture-card" onclick="showToast('Cami kurallari aciliyor')"><div class="culture-card-image">M</div><div class="culture-card-content"><div class="culture-card-title">Cami Ziyaret Kurallari</div><div class="culture-card-desc">Giris kurallari, giyim kodu ve davranis rehberi</div><div class="culture-card-tag">Dini Yerler</div></div></div>
+                    <div class="culture-card" onclick="showToast('Pazarlik rehberi aciliyor')"><div class="culture-card-image">H</div><div class="culture-card-content"><div class="culture-card-title">Pazarlik Kulturu</div><div class="culture-card-desc">Kapalicarsi ve pazarlarda nasil pazarlik yapilir</div><div class="culture-card-tag">Alisveris</div></div></div>
+                    <div class="culture-card" onclick="showToast('Toplu tasima rehberi aciliyor')"><div class="culture-card-image">B</div><div class="culture-card-content"><div class="culture-card-title">Toplu Tasima Kullanimi</div><div class="culture-card-desc">Istanbul Kart, metro, otobus ve tramvay kullanimi</div><div class="culture-card-tag">Ulasim</div></div></div>
+                    <div class="culture-card" onclick="showToast('Onemli kurallar aciliyor')"><div class="culture-card-image">R</div><div class="culture-card-content"><div class="culture-card-title">Onemli Kurallar</div><div class="culture-card-desc">Turkiye'de bilmeniz gereken temel sosyal kurallar</div><div class="culture-card-tag">Genel</div></div></div>
+                </div>
+            </div>
+
+            <!-- MAP / LOCATION SCREEN - YENI -->
+            <div class="screen" id="mapScreen">
+                <div class="screen-header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="screen-title">Konumum</div></div>
+                <div class="map-container"><div class="map-pin">📍</div><div class="map-location-label"><i class="fas fa-map-marker-alt"></i>Sultanahmet, Istanbul</div></div>
+                <div class="location-info-card">
+                    <div class="location-info-header"><div class="location-info-icon"><i class="fas fa-map-marked-alt"></i></div><div><div class="location-info-title">Suan Buradayim</div><div class="location-info-subtitle">Fatih, Istanbul, Turkiye</div></div></div>
+                    <div class="location-detail-row"><div class="location-detail-icon"><i class="fas fa-road"></i></div><div class="location-detail-content"><div class="location-detail-label">Sokak</div><div class="location-detail-value">Divan Yolu Caddesi No:12</div></div></div>
+                    <div class="location-detail-row"><div class="location-detail-icon"><i class="fas fa-landmark"></i></div><div class="location-detail-content"><div class="location-detail-label">Yakininda</div><div class="location-detail-value">Ayasofya Camii (150m)</div></div></div>
+                    <div class="location-detail-row"><div class="location-detail-icon"><i class="fas fa-clock"></i></div><div class="location-detail-content"><div class="location-detail-label">Yerel Saat</div><div class="location-detail-value">14:32 (UTC+3)</div></div></div>
+                </div>
+                <div class="offline-badge"><i class="fas fa-wifi-slash"></i>Internetsiz calisir</div>
+                <div class="section-title"><span>Yakinimdaki Yerler</span></div>
+                <div class="nearby-places">
+                    <div class="nearby-place" onclick="showToast('Ayasofya yonlendiriliyor')"><div class="nearby-place-icon" style="color: #EF4444;">M</div><div class="nearby-place-info"><div class="nearby-place-name">Ayasofya Camii</div><div class="nearby-place-distance">150m - 2 dk yurume</div></div><button class="nearby-place-navigate" onclick="event.stopPropagation()"><i class="fas fa-location-arrow"></i></button></div>
+                    <div class="nearby-place" onclick="showToast('Sultanahmet yonlendiriliyor')"><div class="nearby-place-icon" style="color: #2563EB;">B</div><div class="nearby-place-info"><div class="nearby-place-name">Sultanahmet Camii</div><div class="nearby-place-distance">300m - 4 dk yurume</div></div><button class="nearby-place-navigate" onclick="event.stopPropagation()"><i class="fas fa-location-arrow"></i></button></div>
+                    <div class="nearby-place" onclick="showToast('Yerebatan Sarnici yonlendiriliyor')"><div class="nearby-place-icon" style="color: #7C3AED;">W</div><div class="nearby-place-info"><div class="nearby-place-name">Yerebatan Sarnici</div><div class="nearby-place-distance">200m - 3 dk yurume</div></div><button class="nearby-place-navigate" onclick="event.stopPropagation()"><i class="fas fa-location-arrow"></i></button></div>
+                    <div class="nearby-place" onclick="showToast('Kapalicarsi yonlendiriliyor')"><div class="nearby-place-icon" style="color: #059669;">S</div><div class="nearby-place-info"><div class="nearby-place-name">Kapalicarsi</div><div class="nearby-place-distance">800m - 10 dk yurume</div></div><button class="nearby-place-navigate" onclick="event.stopPropagation()"><i class="fas fa-location-arrow"></i></button></div>
+                    <div class="nearby-place" onclick="showToast('Taksim yonlendiriliyor')"><div class="nearby-place-icon" style="color: #D97706;">T</div><div class="nearby-place-info"><div class="nearby-place-name">Taksim Meydani</div><div class="nearby-place-distance">4.2km - 15 dk araba</div></div><button class="nearby-place-navigate" onclick="event.stopPropagation()"><i class="fas fa-location-arrow"></i></button></div>
+                </div>
+                <div style="margin-top: 20px;"><div class="section-title"><span>Yardim Cumleleri</span></div>
+                <div class="phrase-list">
+                    <div class="phrase-item" onclick="showToast('Kayboldum cumlesi oynatiliyor')"><div class="phrase-icon"><i class="fas fa-question-circle"></i></div><div class="phrase-content"><div class="phrase-text">Kayboldum, burasi neresi?</div><div class="phrase-translation">I am lost, where is this place?</div></div><button class="phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                    <div class="phrase-item" onclick="showToast('Otel cumlesi oynatiliyor')"><div class="phrase-icon"><i class="fas fa-hotel"></i></div><div class="phrase-content"><div class="phrase-text">Otelime nasil giderim?</div><div class="phrase-translation">How do I get to my hotel?</div></div><button class="phrase-play" onclick="event.stopPropagation()"><i class="fas fa-volume-up"></i></button></div>
+                </div></div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation - 3 item: Ana Sayfa + Konumum + Ayarlar -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                <div class="nav-label">Ana Sayfa</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('mapScreen')">
+                <div class="nav-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="nav-label">Konumum</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('settings')">
+                <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                <div class="nav-label">Ayarlar</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Modal -->
+    <div class="modal-overlay" id="languageModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Dil Secin</div>
+            <div class="language-list">
+                <div class="language-option selected"><span class="language-flag">TR</span><span class="language-name">Turkce</span><i class="fas fa-check language-check"></i></div>
+                <div class="language-option"><span class="language-flag">EN</span><span class="language-name">English</span></div>
+                <div class="language-option"><span class="language-flag">DE</span><span class="language-name">Deutsch</span></div>
+                <div class="language-option"><span class="language-flag">FR</span><span class="language-name">Francais</span></div>
+                <div class="language-option"><span class="language-flag">ES</span><span class="language-name">Espanol</span></div>
+                <div class="language-option"><span class="language-flag">RU</span><span class="language-name">Russkiy</span></div>
+                <div class="language-option"><span class="language-flag">AR</span><span class="language-name">Arabic</span></div>
+                <div class="language-option"><span class="language-flag">ZH</span><span class="language-name">Chinese</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let previousScreen = 'homeScreen';
+        let currentScreen = 'homeScreen';
+
+        function navigateTo(screenId) {
+            previousScreen = currentScreen;
+            currentScreen = screenId;
+            document.querySelectorAll('.home-screen, .screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (screenId === 'homeScreen') {
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            } else if (screenId === 'mapScreen') {
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            }
+        }
+
+        function goBack() {
+            document.querySelectorAll('.home-screen, .screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(previousScreen).classList.add('active');
+            currentScreen = previousScreen;
+            previousScreen = 'homeScreen';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (currentScreen === 'homeScreen') {
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            } else if (currentScreen === 'mapScreen') {
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            }
+        }
+
+        function switchTab(tab) {
+            if (tab === 'home') {
+                navigateTo('homeScreen');
+            } else {
+                showToast(tab + ' sekmesi yakinda!');
+            }
+        }
+
+        function openLanguageModal() {
+            document.getElementById('languageModal').classList.add('active');
+        }
+
+        function closeLanguageModal() {
+            document.getElementById('languageModal').classList.remove('active');
+        }
+
+        function swapLanguages() {
+            showToast('Diller degistirildi');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2000);
+        }
+
+        document.querySelector('.modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) { closeLanguageModal(); }
+        });
+
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.language-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                closeLanguageModal();
+                showToast('Dil secildi: ' + this.querySelector('.language-name').textContent);
+            });
+        });
+    </script>
+</body>
+</html>
