@@ -1,8 +1,3 @@
-// ============================================================
-// lib/theme/app_theme.dart
-// Profesyonel tema — Light & Dark mode, Inter fontu.
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,7 +9,6 @@ class AppTheme {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    textTheme: GoogleFonts.interTextTheme(),
     scaffoldBackgroundColor: AppColors.white,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
@@ -23,7 +17,7 @@ class AppTheme {
       surface: AppColors.white,
       error: AppColors.danger,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       elevation: 0,
       centerTitle: true,
       backgroundColor: AppColors.white,
@@ -35,7 +29,7 @@ class AppTheme {
         color: AppColors.dark,
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: AppColors.white,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.gray400,
@@ -44,7 +38,7 @@ class AppTheme {
       selectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
       unselectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: AppColors.white,
@@ -64,11 +58,11 @@ class AppTheme {
       fillColor: AppColors.gray100,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.gray200),
+        borderSide: const BorderSide(color: AppColors.gray200),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.gray200),
+        borderSide: const BorderSide(color: AppColors.gray200),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -93,7 +87,6 @@ class AppTheme {
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
     scaffoldBackgroundColor: AppColors.darkBg,
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
@@ -102,7 +95,7 @@ class AppTheme {
       surface: AppColors.dark,
       error: AppColors.danger,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       elevation: 0,
       centerTitle: true,
       backgroundColor: AppColors.darkBg,
@@ -121,7 +114,7 @@ class AppTheme {
       type: BottomNavigationBarType.fixed,
       elevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: AppColors.dark,

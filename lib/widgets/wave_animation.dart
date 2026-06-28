@@ -1,8 +1,3 @@
-// ============================================================
-// lib/widgets/wave_animation.dart
-// Ses dalgası animasyonu — mikrofon dinlerken gösterilir.
-// ============================================================
-
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
@@ -69,21 +64,6 @@ class _WaveAnimationState extends State<WaveAnimation>
       },
     );
   }
-}
-
-class AnimatedBuilder extends AnimatedWidget {
-  final Widget Function(BuildContext context, Widget? child) builder;
-  final Widget? child;
-
-  const AnimatedBuilder({
-    super.key,
-    required super.listenable,
-    required this.builder,
-    this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) => builder(context, child);
 }
 
 class _WavePainter extends CustomPainter {

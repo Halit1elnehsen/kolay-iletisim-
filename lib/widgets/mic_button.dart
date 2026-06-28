@@ -1,8 +1,3 @@
-// ============================================================
-// lib/widgets/mic_button.dart
-// Animasyonlu mikrofon butonu — pulse efekti + basılı tutma.
-// ============================================================
-
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -70,7 +65,6 @@ class _MicButtonState extends State<MicButton>
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Pulse dalgası
             if (widget.isListening)
               Container(
                 width: widget.size * _pulseAnimation.value * 1.5,
@@ -89,7 +83,6 @@ class _MicButtonState extends State<MicButton>
                   color: AppColors.primary.withOpacity(0.2),
                 ),
               ),
-            // Ana buton
             GestureDetector(
               onTap: widget.onTap,
               onLongPressStart: widget.onLongPressStart != null
@@ -131,7 +124,9 @@ class _MicButtonState extends State<MicButton>
                           ),
                         )
                       : Icon(
-                          widget.isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                          widget.isListening
+                              ? Icons.stop_rounded
+                              : Icons.mic_rounded,
                           color: AppColors.white,
                           size: widget.size * 0.4,
                         ),
@@ -143,19 +138,4 @@ class _MicButtonState extends State<MicButton>
       },
     );
   }
-}
-
-class AnimatedBuilder extends AnimatedWidget {
-  final Widget Function(BuildContext context, Widget? child) builder;
-  final Widget? child;
-
-  const AnimatedBuilder({
-    super.key,
-    required super.listenable,
-    required this.builder,
-    this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) => builder(context, child);
 }
