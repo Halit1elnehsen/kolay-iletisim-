@@ -1,41 +1,7 @@
 // ============================================================
 // lib/services/translation_controller.dart
-//
-// WHY THIS EXISTS:
-//   Halit's UI should call ONE object, not two.
-//   If his button had to know about AudioService AND
-//   GeminiService AND error handling AND state management,
-//   the UI file would become unmaintainable.
-//
-//   This controller is the PUBLIC API for the UI layer:
-//     1. User taps mic button  → startTranslation()
-//     2. User releases button  → stopListening()
-//     3. User taps play button → speakTranslation()
-//
-//   The UI only cares about TranslationState — it subscribes
-//   to the stream and reacts to whatever arrives.
-//
-// HOW TO USE (Halit's side):
-//
-//   // In initState:
-//   TranslationController.instance.stateStream.listen((state) {
-//     setState(() => _state = state);
-//   });
-//
-//   // Mic button (GestureDetector onLongPress):
-//   await TranslationController.instance.startTranslation(
-//     sourceLanguage: AppLanguage.arabic,
-//     targetLanguage: AppLanguage.turkish,
-//   );
-//
-//   // Mic button release (onLongPressEnd):
-//   await TranslationController.instance.stopListening();
-//
-//   // Play button:
-//   await TranslationController.instance.speakTranslation();
-//
-//   // In dispose:
-//   TranslationController.instance.dispose();
+// UI katmanı için tek giriş noktası — AudioService + GeminiService
+// koordinasyonu burada yapılır.
 // ============================================================
 
 import 'dart:async';
@@ -45,216 +11,216 @@ import '../utils/app_logger.dart';
 import 'audio_service.dart';
 import 'gemini_service.dart';
 
-// ---- State model that the UI consumes ---- //
+// ---- UI'ın tükettiği state modeli ---- //
 
 enum TranslationPhase {
-  idle,        // Nothing happening.
-  listening,   // Mic is open.
-  processing,  // Got speech, calling Gemini.
-  success,     // Translation ready.
-  failure,     // Something went wrong.
+  idle,        // Bekleme
+  listening,   // Mikrofon açık
+  processing,  // Ses → Gemini işleniyor
+  speaking,    // TTS çalıyor
+  success,     // Çeviri hazır
+  failure,     // Hata
 }
 
 class TranslationState {
   final TranslationPhase phase;
-
-  /// Live partial speech text — shown while user is still talking.
-  final String           partialText;
-
-  /// Final recognized speech.
-  final String           recognizedText;
-
-  /// Translated output.
-  final String           translatedText;
-
-  /// Human-readable error to display in a SnackBar / Dialog.
-  final String?          errorMessage;
+  final String partialText;       // Dinleme anında gösterilen anlık metin
+  final String recognizedText;    // Tanınan son metin
+  final String translatedText;    // Çevrilmiş metin
+  final String? errorMessage;
+  final AppLanguage sourceLanguage;
+  final AppLanguage targetLanguage;
 
   const TranslationState({
-    this.phase          = TranslationPhase.idle,
-    this.partialText    = '',
-    this.recognizedText = '',
-    this.translatedText = '',
+    this.phase           = TranslationPhase.idle,
+    this.partialText     = '',
+    this.recognizedText  = '',
+    this.translatedText  = '',
     this.errorMessage,
+    this.sourceLanguage  = AppLanguage.arabic,
+    this.targetLanguage  = AppLanguage.turkish,
   });
 
   TranslationState copyWith({
     TranslationPhase? phase,
-    String?           partialText,
-    String?           recognizedText,
-    String?           translatedText,
-    String?           errorMessage,
-  }) =>
-      TranslationState(
-        phase:          phase          ?? this.phase,
-        partialText:    partialText    ?? this.partialText,
-        recognizedText: recognizedText ?? this.recognizedText,
-        translatedText: translatedText ?? this.translatedText,
-        errorMessage:   errorMessage,
-      );
+    String? partialText,
+    String? recognizedText,
+    String? translatedText,
+    String? errorMessage,
+    AppLanguage? sourceLanguage,
+    AppLanguage? targetLanguage,
+  }) => TranslationState(
+    phase:           phase           ?? this.phase,
+    partialText:     partialText     ?? this.partialText,
+    recognizedText:  recognizedText  ?? this.recognizedText,
+    translatedText:  translatedText  ?? this.translatedText,
+    errorMessage:    errorMessage,  // null ile sıfırlanabilir
+    sourceLanguage:  sourceLanguage  ?? this.sourceLanguage,
+    targetLanguage:  targetLanguage  ?? this.targetLanguage,
+  );
 }
 
-// ------------------------------------------------------------------ //
+// ---- Controller ---- //
 
 class TranslationController {
   TranslationController._internal();
-
   static final TranslationController instance = TranslationController._internal();
-
   static const _tag = 'TranslationController';
 
-  final _audio  = AudioService.instance;
-  final _gemini = GeminiService.instance;
-
-  // Stream of states — the UI subscribes to this.
   final _stateController = StreamController<TranslationState>.broadcast();
   Stream<TranslationState> get stateStream => _stateController.stream;
 
   TranslationState _state = const TranslationState();
   TranslationState get currentState => _state;
 
-  // Last successful translation — needed by speakTranslation().
-  TranslationResult? _lastTranslation;
+  StreamSubscription<String>? _partialSub;
 
-  // ================================================================
-  //  initialize()
-  //  Call once — await TranslationController.instance.initialize()
-  //  in your app's startup code (e.g. SplashScreen or main()).
-  // ================================================================
-  Future<ServiceResult<void>> initialize() async {
-    AppLogger.info(_tag, 'Initializing...');
-    return _audio.initialize();
+  void _emit(TranslationState state) {
+    _state = state;
+    _stateController.add(state);
+    AppLogger.d(_tag, 'State: ${state.phase}');
   }
 
-  // ================================================================
-  //  startTranslation()
-  //  Opens the mic and kicks off the full pipeline:
-  //    mic → STT → Gemini → result in stateStream
-  // ================================================================
-  Future<void> startTranslation({
-    required AppLanguage sourceLanguage,
-    required AppLanguage targetLanguage,
-  }) async {
+  // ---- Dil değiştir ---- //
+
+  void setLanguages({AppLanguage? source, AppLanguage? target}) {
     _emit(_state.copyWith(
-      phase:       TranslationPhase.listening,
+      sourceLanguage: source,
+      targetLanguage: target,
+    ));
+  }
+
+  void swapLanguages() {
+    _emit(_state.copyWith(
+      sourceLanguage: _state.targetLanguage,
+      targetLanguage: _state.sourceLanguage,
+      recognizedText: _state.translatedText,
+      translatedText: _state.recognizedText,
+    ));
+  }
+
+  // ---- Çeviri başlat (mikrofon) ---- //
+
+  Future<void> startTranslation() async {
+    if (_state.phase == TranslationPhase.listening) return;
+
+    _emit(_state.copyWith(
+      phase: TranslationPhase.listening,
       partialText: '',
+      recognizedText: '',
+      translatedText: '',
       errorMessage: null,
     ));
 
-    final result = await _audio.startListening(
-      config: RecognitionConfig(localeId: sourceLanguage.bcp47),
+    // Anlık metin akışını dinle
+    _partialSub?.cancel();
+    _partialSub = AudioService.instance.partialTextStream.listen((text) {
+      _emit(_state.copyWith(partialText: text));
+    });
 
-      onPartialResult: (partial) {
-        _emit(_state.copyWith(partialText: partial));
-      },
+    final config = RecognitionConfig(localeId: _state.sourceLanguage.bcp47);
+    final result = await AudioService.instance.startListening(config);
 
-      onFinalResult: (text) async {
+    await _partialSub?.cancel();
+
+    result.when(
+      success: (recognized) async {
         _emit(_state.copyWith(
-          phase:          TranslationPhase.processing,
-          recognizedText: text,
-          partialText:    '',
+          phase: TranslationPhase.processing,
+          recognizedText: recognized,
+          partialText: '',
         ));
-
-        await _runTranslation(
-          text:   text,
-          source: sourceLanguage,
-          target: targetLanguage,
-        );
+        await _translateAndSpeak(recognized);
+      },
+      failure: (msg) {
+        _emit(_state.copyWith(
+          phase: TranslationPhase.failure,
+          errorMessage: msg,
+        ));
       },
     );
-
-    if (result.isFailure) {
-      _emitError(result.failure!.userMessage);
-    }
   }
 
-  // ================================================================
-  //  stopListening()
-  //  Call when user releases the mic button.
-  // ================================================================
+  // ---- Dinlemeyi durdur ---- //
+
   Future<void> stopListening() async {
-    await _audio.stopListening();
-    // If we're still in listening phase (user released quickly without speech):
-    if (_state.phase == TranslationPhase.listening) {
-      _emit(_state.copyWith(phase: TranslationPhase.idle));
-    }
+    await AudioService.instance.stopListening();
   }
 
-  // ================================================================
-  //  speakTranslation()
-  //  Plays the last translated text aloud.
-  //  Halit can wire this to the play/speaker button.
-  // ================================================================
-  Future<void> speakTranslation() async {
-    final translation = _lastTranslation;
+  // ---- Metin ile çeviri ---- //
 
-    if (translation == null) {
-      AppLogger.warning(_tag, 'speakTranslation() called with no translation available.');
-      return;
-    }
+  Future<void> translateText(String text) async {
+    if (text.trim().isEmpty) return;
 
-    await _audio.speak(
-      translation.translatedText,
-      config: TtsConfig(languageCode: translation.targetLanguage.bcp47),
-    );
-  }
-
-  // ================================================================
-  //  stopSpeaking()
-  // ================================================================
-  Future<void> stopSpeaking() => _audio.stopSpeaking();
-
-  // ================================================================
-  //  _runTranslation()  — private pipeline step
-  // ================================================================
-  Future<void> _runTranslation({
-    required String      text,
-    required AppLanguage source,
-    required AppLanguage target,
-  }) async {
-    final result = await _gemini.translate(
-      text:   text,
-      source: source,
-      target: target,
-    );
-
-    if (result.isSuccess) {
-      _lastTranslation = result.value;
-      _emit(_state.copyWith(
-        phase:          TranslationPhase.success,
-        translatedText: result.value.translatedText,
-      ));
-
-      // Auto-speak the translation after it arrives.
-      await speakTranslation();
-
-    } else {
-      _emitError(result.failure!.userMessage);
-    }
-  }
-
-  // ---- Private helpers ---- //
-
-  void _emit(TranslationState newState) {
-    _state = newState;
-    if (!_stateController.isClosed) _stateController.add(_state);
-  }
-
-  void _emitError(String message) {
-    AppLogger.error(_tag, 'Error state: $message');
     _emit(_state.copyWith(
-      phase:        TranslationPhase.failure,
-      errorMessage: message,
+      phase: TranslationPhase.processing,
+      recognizedText: text,
+    ));
+    await _translateAndSpeak(text);
+  }
+
+  // ---- Son çeviriyi seslendir ---- //
+
+  Future<void> speakTranslation() async {
+    if (_state.translatedText.isEmpty) return;
+
+    _emit(_state.copyWith(phase: TranslationPhase.speaking));
+
+    final config = TtsConfig(languageCode: _state.targetLanguage.bcp47);
+    await AudioService.instance.speak(_state.translatedText, config);
+
+    _emit(_state.copyWith(phase: TranslationPhase.success));
+  }
+
+  // ---- Orijinal metni seslendir ---- //
+
+  Future<void> speakOriginal() async {
+    if (_state.recognizedText.isEmpty) return;
+
+    final config = TtsConfig(languageCode: _state.sourceLanguage.bcp47);
+    await AudioService.instance.speak(_state.recognizedText, config);
+  }
+
+  // ---- Sıfırla ---- //
+
+  void reset() {
+    AudioService.instance.stopSpeaking();
+    AudioService.instance.stopListening();
+    _emit(TranslationState(
+      sourceLanguage: _state.sourceLanguage,
+      targetLanguage: _state.targetLanguage,
     ));
   }
 
-  // ===================نس=============================================
-  //  dispose()
-  //  Call in the root widget's dispose().
-  // ================================================================
+  // ---- İç çeviri + TTS akışı ---- //
+
+  Future<void> _translateAndSpeak(String text) async {
+    final result = await GeminiService.instance.translate(
+      text: text,
+      source: _state.sourceLanguage,
+      target: _state.targetLanguage,
+    );
+
+    result.when(
+      success: (translation) async {
+        _emit(_state.copyWith(
+          phase: TranslationPhase.success,
+          translatedText: translation.translatedText,
+        ));
+        // Otomatik seslendir
+        await speakTranslation();
+      },
+      failure: (msg) {
+        _emit(_state.copyWith(
+          phase: TranslationPhase.failure,
+          errorMessage: msg,
+        ));
+      },
+    );
+  }
+
   Future<void> dispose() async {
-    await _audio.dispose();
+    await _partialSub?.cancel();
     await _stateController.close();
-    AppLogger.info(_tag, 'Disposed.');
   }
 }
