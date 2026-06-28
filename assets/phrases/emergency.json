@@ -1,0 +1,103 @@
+{
+  "category": "emergency",
+  "icon": "🚨",
+  "color": "#E74C3C",
+  "phrases": [
+    {
+      "id": "em_001",
+      "ar": "النجدة! أحتاج مساعدة!",
+      "tr": "İmdat! Yardıma ihtiyacım var!",
+      "en": "Help! I need assistance!",
+      "de": "Hilfe! Ich brauche Hilfe!",
+      "fr": "Au secours! J'ai besoin d'aide!",
+      "es": "¡Socorro! ¡Necesito ayuda!",
+      "ru": "Помогите! Мне нужна помощь!",
+      "zh": "救命！我需要帮助！",
+      "ja": "助けてください！助けが必要です！"
+    },
+    {
+      "id": "em_002",
+      "ar": "اتصل بالإسعاف من فضلك!",
+      "tr": "Lütfen ambulans çağırın!",
+      "en": "Please call an ambulance!",
+      "de": "Bitte rufen Sie einen Krankenwagen!",
+      "fr": "Appelez une ambulance s'il vous plaît!",
+      "es": "¡Por favor llame a una ambulancia!",
+      "ru": "Пожалуйста, вызовите скорую помощь!",
+      "zh": "请叫救护车！",
+      "ja": "救急車を呼んでください！"
+    },
+    {
+      "id": "em_003",
+      "ar": "اتصل بالشرطة!",
+      "tr": "Polisi arayın!",
+      "en": "Call the police!",
+      "de": "Rufen Sie die Polizei!",
+      "fr": "Appelez la police!",
+      "es": "¡Llame a la policía!",
+      "ru": "Вызовите полицию!",
+      "zh": "报警！",
+      "ja": "警察を呼んでください！"
+    },
+    {
+      "id": "em_004",
+      "ar": "هناك حريق!",
+      "tr": "Yangın var!",
+      "en": "There is a fire!",
+      "de": "Es gibt einen Brand!",
+      "fr": "Il y a un incendie!",
+      "es": "¡Hay un incendio!",
+      "ru": "Пожар!",
+      "zh": "着火了！",
+      "ja": "火事です！"
+    },
+    {
+      "id": "em_005",
+      "ar": "سُرقت حقيبتي!",
+      "tr": "Çantam çalındı!",
+      "en": "My bag was stolen!",
+      "de": "Meine Tasche wurde gestohlen!",
+      "fr": "Mon sac a été volé!",
+      "es": "¡Me robaron la bolsa!",
+      "ru": "У меня украли сумку!",
+      "zh": "我的包被偷了！",
+      "ja": "バッグが盗まれました！"
+    },
+    {
+      "id": "em_006",
+      "ar": "أنا في خطر!",
+      "tr": "Tehlikedeyim!",
+      "en": "I am in danger!",
+      "de": "Ich bin in Gefahr!",
+      "fr": "Je suis en danger!",
+      "es": "¡Estoy en peligro!",
+      "ru": "Я в опасности!",
+      "zh": "我有危险！",
+      "ja": "危険です！"
+    },
+    {
+      "id": "em_007",
+      "ar": "فقدت جواز سفري",
+      "tr": "Pasaportumu kaybettim",
+      "en": "I lost my passport",
+      "de": "Ich habe meinen Pass verloren",
+      "fr": "J'ai perdu mon passeport",
+      "es": "Perdí mi pasaporte",
+      "ru": "Я потерял паспорт",
+      "zh": "我丢失了护照",
+      "ja": "パスポートを紛失しました"
+    },
+    {
+      "id": "em_008",
+      "ar": "أحتاج إلى طبيب فوراً",
+      "tr": "Acilen bir doktora ihtiyacım var",
+      "en": "I need a doctor immediately",
+      "de": "Ich brauche sofort einen Arzt",
+      "fr": "J'ai besoin d'un médecin immédiatement",
+      "es": "Necesito un médico de inmediato",
+      "ru": "Мне срочно нужен врач",
+      "zh": "我需要立即看医生",
+      "ja": "すぐに医者が必要です"
+    }
+  ]
+}

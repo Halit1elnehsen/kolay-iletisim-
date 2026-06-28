@@ -1,10 +1,6 @@
-// ============================================================
-// lib/theme/app_theme.dart
-// Profesyonel tema — Light & Dark mode, Inter fontu.
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -13,7 +9,6 @@ class AppTheme {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: 'Inter',
     scaffoldBackgroundColor: AppColors.white,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
@@ -22,29 +17,28 @@ class AppTheme {
       surface: AppColors.white,
       error: AppColors.danger,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       elevation: 0,
       centerTitle: true,
       backgroundColor: AppColors.white,
       foregroundColor: AppColors.dark,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      titleTextStyle: TextStyle(
-        fontFamily: 'Inter',
+      titleTextStyle: GoogleFonts.inter(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: AppColors.dark,
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: AppColors.white,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.gray400,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      selectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600),
-      unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w500),
+      selectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+      unselectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: AppColors.white,
@@ -56,7 +50,7 @@ class AppTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -64,11 +58,11 @@ class AppTheme {
       fillColor: AppColors.gray100,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.gray200),
+        borderSide: const BorderSide(color: AppColors.gray200),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.gray200),
+        borderSide: const BorderSide(color: AppColors.gray200),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -93,7 +87,6 @@ class AppTheme {
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: 'Inter',
     scaffoldBackgroundColor: AppColors.darkBg,
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
@@ -102,14 +95,13 @@ class AppTheme {
       surface: AppColors.dark,
       error: AppColors.danger,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       elevation: 0,
       centerTitle: true,
       backgroundColor: AppColors.darkBg,
       foregroundColor: AppColors.white,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      titleTextStyle: TextStyle(
-        fontFamily: 'Inter',
+      titleTextStyle: GoogleFonts.inter(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: AppColors.white,
@@ -122,7 +114,7 @@ class AppTheme {
       type: BottomNavigationBarType.fixed,
       elevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: AppColors.dark,

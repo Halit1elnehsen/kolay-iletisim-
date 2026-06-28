@@ -1,0 +1,91 @@
+{
+  "category": "restaurant",
+  "icon": "🍽️",
+  "color": "#E67E22",
+  "phrases": [
+    {
+      "id": "re_001",
+      "ar": "طاولة لشخصين من فضلك",
+      "tr": "İki kişilik masa lütfen",
+      "en": "A table for two please",
+      "de": "Ein Tisch für zwei Personen bitte",
+      "fr": "Une table pour deux s'il vous plaît",
+      "es": "Una mesa para dos personas por favor",
+      "ru": "Столик на двоих, пожалуйста",
+      "zh": "请给我一张两人桌",
+      "ja": "2人のテーブルをお願いします"
+    },
+    {
+      "id": "re_002",
+      "ar": "أنا نباتي",
+      "tr": "Vejetaryenim",
+      "en": "I am vegetarian",
+      "de": "Ich bin Vegetarier",
+      "fr": "Je suis végétarien",
+      "es": "Soy vegetariano",
+      "ru": "Я вегетарианец",
+      "zh": "我是素食者",
+      "ja": "私はベジタリアンです"
+    },
+    {
+      "id": "re_003",
+      "ar": "هل يحتوي هذا على لحم خنزير؟",
+      "tr": "Bu domuz içeriyor mu?",
+      "en": "Does this contain pork?",
+      "de": "Enthält das Schweinefleisch?",
+      "fr": "Est-ce que ça contient du porc?",
+      "es": "¿Esto contiene cerdo?",
+      "ru": "В этом есть свинина?",
+      "zh": "这含有猪肉吗？",
+      "ja": "これに豚肉は入っていますか？"
+    },
+    {
+      "id": "re_004",
+      "ar": "الفاتورة من فضلك",
+      "tr": "Hesap lütfen",
+      "en": "The bill please",
+      "de": "Die Rechnung bitte",
+      "fr": "L'addition s'il vous plaît",
+      "es": "La cuenta por favor",
+      "ru": "Счёт, пожалуйста",
+      "zh": "请买单",
+      "ja": "お会計をお願いします"
+    },
+    {
+      "id": "re_005",
+      "ar": "هذا الطعام بارد",
+      "tr": "Bu yemek soğuk",
+      "en": "This food is cold",
+      "de": "Dieses Essen ist kalt",
+      "fr": "Cette nourriture est froide",
+      "es": "Esta comida está fría",
+      "ru": "Это блюдо холодное",
+      "zh": "这道菜是凉的",
+      "ja": "この料理は冷たいです"
+    },
+    {
+      "id": "re_006",
+      "ar": "ماء من فضلك",
+      "tr": "Su lütfen",
+      "en": "Water please",
+      "de": "Wasser bitte",
+      "fr": "De l'eau s'il vous plaît",
+      "es": "Agua por favor",
+      "ru": "Воду пожалуйста",
+      "zh": "请给我水",
+      "ja": "お水をください"
+    },
+    {
+      "id": "re_007",
+      "ar": "هل الطعام حلال؟",
+      "tr": "Yemek helal mi?",
+      "en": "Is the food halal?",
+      "de": "Ist das Essen halal?",
+      "fr": "La nourriture est-elle halal?",
+      "es": "¿La comida es halal?",
+      "ru": "Еда халяльная?",
+      "zh": "食物是清真的吗？",
+      "ja": "食べ物はハラルですか？"
+    }
+  ]
+}

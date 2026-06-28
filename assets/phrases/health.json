@@ -1,0 +1,103 @@
+{
+  "category": "health",
+  "icon": "🏥",
+  "color": "#2ECC71",
+  "phrases": [
+    {
+      "id": "he_001",
+      "ar": "أين أقرب مستشفى؟",
+      "tr": "En yakın hastane nerede?",
+      "en": "Where is the nearest hospital?",
+      "de": "Wo ist das nächste Krankenhaus?",
+      "fr": "Où est l'hôpital le plus proche?",
+      "es": "¿Dónde está el hospital más cercano?",
+      "ru": "Где ближайшая больница?",
+      "zh": "最近的医院在哪里？",
+      "ja": "最寄りの病院はどこですか？"
+    },
+    {
+      "id": "he_002",
+      "ar": "أين أقرب صيدلية؟",
+      "tr": "En yakın eczane nerede?",
+      "en": "Where is the nearest pharmacy?",
+      "de": "Wo ist die nächste Apotheke?",
+      "fr": "Où est la pharmacie la plus proche?",
+      "es": "¿Dónde está la farmacia más cercana?",
+      "ru": "Где ближайшая аптека?",
+      "zh": "最近的药店在哪里？",
+      "ja": "最寄りの薬局はどこですか？"
+    },
+    {
+      "id": "he_003",
+      "ar": "أشعر بألم شديد",
+      "tr": "Şiddetli ağrım var",
+      "en": "I feel severe pain",
+      "de": "Ich habe starke Schmerzen",
+      "fr": "Je ressens une douleur intense",
+      "es": "Siento un dolor intenso",
+      "ru": "Я чувствую сильную боль",
+      "zh": "我感到剧烈疼痛",
+      "ja": "ひどい痛みがあります"
+    },
+    {
+      "id": "he_004",
+      "ar": "أنا لدي حساسية من...",
+      "tr": "...alerjim var",
+      "en": "I am allergic to...",
+      "de": "Ich bin allergisch gegen...",
+      "fr": "Je suis allergique à...",
+      "es": "Soy alérgico a...",
+      "ru": "У меня аллергия на...",
+      "zh": "我对...过敏",
+      "ja": "私は...アレルギーがあります"
+    },
+    {
+      "id": "he_005",
+      "ar": "أحتاج إلى دوائي",
+      "tr": "İlacıma ihtiyacım var",
+      "en": "I need my medication",
+      "de": "Ich brauche meine Medikamente",
+      "fr": "J'ai besoin de mes médicaments",
+      "es": "Necesito mi medicación",
+      "ru": "Мне нужны мои лекарства",
+      "zh": "我需要我的药",
+      "ja": "薬が必要です"
+    },
+    {
+      "id": "he_006",
+      "ar": "أشعر بدوار وغثيان",
+      "tr": "Baş dönmem ve bulantım var",
+      "en": "I feel dizzy and nauseous",
+      "de": "Mir ist schwindelig und übel",
+      "fr": "J'ai des vertiges et des nausées",
+      "es": "Me siento mareado y con náuseas",
+      "ru": "Мне плохо, кружится голова",
+      "zh": "我感到头晕和恶心",
+      "ja": "めまいと吐き気がします"
+    },
+    {
+      "id": "he_007",
+      "ar": "أنا مريض بالسكري",
+      "tr": "Şeker hastasıyım",
+      "en": "I have diabetes",
+      "de": "Ich habe Diabetes",
+      "fr": "Je suis diabétique",
+      "es": "Tengo diabetes",
+      "ru": "У меня диабет",
+      "zh": "我有糖尿病",
+      "ja": "私は糖尿病です"
+    },
+    {
+      "id": "he_008",
+      "ar": "أحتاج إلى مساعدة طبية طارئة",
+      "tr": "Acil tıbbi yardıma ihtiyacım var",
+      "en": "I need emergency medical help",
+      "de": "Ich brauche medizinische Notfallhilfe",
+      "fr": "J'ai besoin d'une aide médicale d'urgence",
+      "es": "Necesito ayuda médica de emergencia",
+      "ru": "Мне нужна экстренная медицинская помощь",
+      "zh": "我需要紧急医疗救助",
+      "ja": "緊急医療が必要です"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "category": "shopping",
+  "icon": "🛍️",
+  "color": "#1ABC9C",
+  "phrases": [
+    {
+      "id": "sh_001",
+      "ar": "كم ثمن هذا؟",
+      "tr": "Bu ne kadar?",
+      "en": "How much does this cost?",
+      "de": "Wie viel kostet das?",
+      "fr": "Combien ça coûte?",
+      "es": "¿Cuánto cuesta esto?",
+      "ru": "Сколько это стоит?",
+      "zh": "这个多少钱？",
+      "ja": "これはいくらですか？"
+    },
+    {
+      "id": "sh_002",
+      "ar": "هل يمكنك تخفيض السعر؟",
+      "tr": "Fiyatı indirebilir misiniz?",
+      "en": "Can you lower the price?",
+      "de": "Können Sie den Preis senken?",
+      "fr": "Pouvez-vous baisser le prix?",
+      "es": "¿Puede bajar el precio?",
+      "ru": "Можете снизить цену?",
+      "zh": "能便宜一点吗？",
+      "ja": "値段を下げてもらえますか？"
+    },
+    {
+      "id": "sh_003",
+      "ar": "أريد هذا المقاس",
+      "tr": "Bu bedeni istiyorum",
+      "en": "I want this size",
+      "de": "Ich möchte diese Größe",
+      "fr": "Je veux cette taille",
+      "es": "Quiero esta talla",
+      "ru": "Мне нужен этот размер",
+      "zh": "我要这个尺寸",
+      "ja": "このサイズが欲しいです"
+    },
+    {
+      "id": "sh_004",
+      "ar": "هل تقبلون بطاقة الائتمان؟",
+      "tr": "Kredi kartı kabul ediyor musunuz?",
+      "en": "Do you accept credit cards?",
+      "de": "Akzeptieren Sie Kreditkarten?",
+      "fr": "Acceptez-vous les cartes de crédit?",
+      "es": "¿Aceptan tarjetas de crédito?",
+      "ru": "Вы принимаете кредитные карты?",
+      "zh": "你们接受信用卡吗？",
+      "ja": "クレジットカードは使えますか？"
+    },
+    {
+      "id": "sh_005",
+      "ar": "أريد استرداد المبلغ",
+      "tr": "Para iadesi istiyorum",
+      "en": "I want a refund",
+      "de": "Ich möchte eine Rückerstattung",
+      "fr": "Je veux un remboursement",
+      "es": "Quiero un reembolso",
+      "ru": "Я хочу возврат денег",
+      "zh": "我想退款",
+      "ja": "返金をお願いします"
+    }
+  ]
+}

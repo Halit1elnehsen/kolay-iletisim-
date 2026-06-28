@@ -1,0 +1,79 @@
+{
+  "category": "hotel",
+  "icon": "🏨",
+  "color": "#9B59B6",
+  "phrases": [
+    {
+      "id": "ho_001",
+      "ar": "عندي حجز باسم...",
+      "tr": "...adına rezervasyonum var",
+      "en": "I have a reservation under the name...",
+      "de": "Ich habe eine Reservierung unter dem Namen...",
+      "fr": "J'ai une réservation au nom de...",
+      "es": "Tengo una reserva a nombre de...",
+      "ru": "У меня есть бронирование на имя...",
+      "zh": "我有一个以...名义的预订",
+      "ja": "...という名前で予約しています"
+    },
+    {
+      "id": "ho_002",
+      "ar": "الغرفة غير نظيفة",
+      "tr": "Oda temiz değil",
+      "en": "The room is not clean",
+      "de": "Das Zimmer ist nicht sauber",
+      "fr": "La chambre n'est pas propre",
+      "es": "La habitación no está limpia",
+      "ru": "Номер нечистый",
+      "zh": "房间不干净",
+      "ja": "部屋が清潔ではありません"
+    },
+    {
+      "id": "ho_003",
+      "ar": "أحتاج مناشف إضافية",
+      "tr": "Ekstra havluya ihtiyacım var",
+      "en": "I need extra towels",
+      "de": "Ich brauche zusätzliche Handtücher",
+      "fr": "J'ai besoin de serviettes supplémentaires",
+      "es": "Necesito toallas adicionales",
+      "ru": "Мне нужны дополнительные полотенца",
+      "zh": "我需要额外的毛巾",
+      "ja": "タオルを追加でください"
+    },
+    {
+      "id": "ho_004",
+      "ar": "ما هو رمز الواي فاي؟",
+      "tr": "Wifi şifresi nedir?",
+      "en": "What is the WiFi password?",
+      "de": "Was ist das WLAN-Passwort?",
+      "fr": "Quel est le mot de passe WiFi?",
+      "es": "¿Cuál es la contraseña del WiFi?",
+      "ru": "Какой пароль от WiFi?",
+      "zh": "WiFi密码是什么？",
+      "ja": "WiFiのパスワードは何ですか？"
+    },
+    {
+      "id": "ho_005",
+      "ar": "أريد الإفطار في الغرفة",
+      "tr": "Odama kahvaltı istiyorum",
+      "en": "I want breakfast in the room",
+      "de": "Ich möchte Frühstück auf dem Zimmer",
+      "fr": "Je veux le petit déjeuner dans la chambre",
+      "es": "Quiero desayuno en la habitación",
+      "ru": "Я хочу завтрак в номер",
+      "zh": "我想要客房送餐早餐",
+      "ja": "部屋で朝食をお願いします"
+    },
+    {
+      "id": "ho_006",
+      "ar": "متى وقت تسليم الغرفة؟",
+      "tr": "Check-out saati kaçta?",
+      "en": "What time is check-out?",
+      "de": "Um wie viel Uhr ist der Check-out?",
+      "fr": "À quelle heure est le check-out?",
+      "es": "¿A qué hora es el check-out?",
+      "ru": "В какое время нужно освободить номер?",
+      "zh": "几点退房？",
+      "ja": "チェックアウトは何時ですか？"
+    }
+  ]
+}

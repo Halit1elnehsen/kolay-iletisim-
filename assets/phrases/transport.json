@@ -1,0 +1,91 @@
+{
+  "category": "transport",
+  "icon": "🚗",
+  "color": "#3498DB",
+  "phrases": [
+    {
+      "id": "tr_001",
+      "ar": "أين محطة المترو؟",
+      "tr": "Metro istasyonu nerede?",
+      "en": "Where is the metro station?",
+      "de": "Wo ist die U-Bahn-Station?",
+      "fr": "Où est la station de métro?",
+      "es": "¿Dónde está la estación de metro?",
+      "ru": "Где станция метро?",
+      "zh": "地铁站在哪里？",
+      "ja": "地下鉄の駅はどこですか？"
+    },
+    {
+      "id": "tr_002",
+      "ar": "أين المطار؟",
+      "tr": "Havalimanı nerede?",
+      "en": "Where is the airport?",
+      "de": "Wo ist der Flughafen?",
+      "fr": "Où est l'aéroport?",
+      "es": "¿Dónde está el aeropuerto?",
+      "ru": "Где аэропорт?",
+      "zh": "机场在哪里？",
+      "ja": "空港はどこですか？"
+    },
+    {
+      "id": "tr_003",
+      "ar": "أريد تاكسي من فضلك",
+      "tr": "Lütfen bir taksi istiyorum",
+      "en": "I want a taxi please",
+      "de": "Ich möchte ein Taxi bitte",
+      "fr": "Je voudrais un taxi s'il vous plaît",
+      "es": "Quiero un taxi por favor",
+      "ru": "Мне нужно такси, пожалуйста",
+      "zh": "我想要一辆出租车",
+      "ja": "タクシーをお願いします"
+    },
+    {
+      "id": "tr_004",
+      "ar": "كم يكلف الذهاب إلى...",
+      "tr": "...gitmek ne kadar tutar?",
+      "en": "How much does it cost to go to...",
+      "de": "Wie viel kostet es nach... zu fahren?",
+      "fr": "Combien coûte le trajet pour...",
+      "es": "¿Cuánto cuesta ir a...",
+      "ru": "Сколько стоит поездка до...",
+      "zh": "去...要多少钱？",
+      "ja": "...まではいくらかかりますか？"
+    },
+    {
+      "id": "tr_005",
+      "ar": "هل هذا الحافلة تذهب إلى المركز؟",
+      "tr": "Bu otobüs merkeze gidiyor mu?",
+      "en": "Does this bus go to the center?",
+      "de": "Fährt dieser Bus ins Zentrum?",
+      "fr": "Est-ce que ce bus va au centre?",
+      "es": "¿Este autobús va al centro?",
+      "ru": "Этот автобус едет в центр?",
+      "zh": "这辆公交车去市中心吗？",
+      "ja": "このバスは中心部に行きますか？"
+    },
+    {
+      "id": "tr_006",
+      "ar": "أين محطة القطار؟",
+      "tr": "Tren istasyonu nerede?",
+      "en": "Where is the train station?",
+      "de": "Wo ist der Bahnhof?",
+      "fr": "Où est la gare?",
+      "es": "¿Dónde está la estación de tren?",
+      "ru": "Где железнодорожная станция?",
+      "zh": "火车站在哪里？",
+      "ja": "電車の駅はどこですか？"
+    },
+    {
+      "id": "tr_007",
+      "ar": "أريد تذكرة ذهاباً وإياباً",
+      "tr": "Gidiş-dönüş bilet istiyorum",
+      "en": "I want a round-trip ticket",
+      "de": "Ich möchte eine Hin- und Rückfahrkarte",
+      "fr": "Je veux un billet aller-retour",
+      "es": "Quiero un billete de ida y vuelta",
+      "ru": "Мне нужен билет туда и обратно",
+      "zh": "我要一张往返票",
+      "ja": "往復切符をください"
+    }
+  ]
+}
