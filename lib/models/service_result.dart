@@ -1,121 +1,38 @@
 // ============================================================
 // lib/models/service_result.dart
-//
-// WHY THIS EXISTS:
-// Most junior devs throw exceptions across service boundaries and
-// catch them (badly) in the UI layer. This creates invisible
-// coupling and makes error messages impossible to localise.
-//
-// Instead every service method returns ServiceResult<T>.
-// The UI layer only pattern-matches on .isSuccess — it never
-// needs to know what SpeechToTextException is.
+// Generic Result tipi — başarı veya başarısızlığı taşır.
+// Hiçbir exception uygulama katmanlarını geçmez.
 // ============================================================
 
-/// A discriminated union: either a value OR a typed failure.
-/// Usage:
-///   final result = await audioService.startListening(...);
-///   if (result.isSuccess) { use(result.value); }
-///   else                  { showError(result.failure!.userMessage); }
-class ServiceResult<T> {
-  final T?             _value;
-  final ServiceFailure? failure;
+sealed class ServiceResult<T> {
+  const ServiceResult();
+}
 
-  const ServiceResult._({T? value, this.failure}) : _value = value;
+final class ServiceSuccess<T> extends ServiceResult<T> {
+  final T data;
+  const ServiceSuccess(this.data);
+}
 
-  /// Construct a success result.
-  factory ServiceResult.success(T value) =>
-      ServiceResult._(value: value);
+final class ServiceFailure<T> extends ServiceResult<T> {
+  final String message;
+  final Object? error;
+  const ServiceFailure(this.message, {this.error});
+}
 
-  /// Construct a void success (use for methods that return nothing meaningful).
-  static ServiceResult<void> ok() =>
-      const ServiceResult._(value: null);
+extension ServiceResultX<T> on ServiceResult<T> {
+  bool get isSuccess => this is ServiceSuccess<T>;
+  bool get isFailure => this is ServiceFailure<T>;
 
-  /// Construct a failure result.
-  factory ServiceResult.fail(ServiceFailure failure) =>
-      ServiceResult._(failure: failure);
+  T get data => (this as ServiceSuccess<T>).data;
+  String get errorMessage => (this as ServiceFailure<T>).message;
 
-  bool get isSuccess => failure == null;
-  bool get isFailure => failure != null;
-
-  /// Throws if called on a failure result — use isSuccess first.
-  T get value {
-    if (_value == null) throw StateError('ServiceResult has no value. Check isSuccess first.');
-    return _value as T;
-  }
-
-  /// Run [onSuccess] or [onFailure] depending on the result.
-  R fold<R>({
-    required R Function(T value)            onSuccess,
-    required R Function(ServiceFailure err) onFailure,
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(String message) failure,
   }) {
-    return isSuccess ? onSuccess(value) : onFailure(failure!);
+    return switch (this) {
+      ServiceSuccess<T> s => success(s.data),
+      ServiceFailure<T> f => failure(f.message),
+    };
   }
-}
-
-// ---- Failure types ---- //
-
-enum FailureKind {
-  permissionDenied,
-  deviceNotSupported,
-  networkUnavailable,
-  apiError,
-  timeout,
-  unknown,
-}
-
-class ServiceFailure {
-  final FailureKind kind;
-
-  /// Developer-facing message — shown in logs only.
-  final String technicalMessage;
-
-  /// User-facing message — safe to show in the UI.
-  final String userMessage;
-
-  const ServiceFailure({
-    required this.kind,
-    required this.technicalMessage,
-    required this.userMessage,
-  });
-
-  // --- Pre-built failures so callers don't repeat strings --- //
-
-  static const permissionDenied = ServiceFailure(
-    kind:             FailureKind.permissionDenied,
-    technicalMessage: 'Microphone permission was denied by the OS.',
-    userMessage:      'Microphone access is required. Please enable it in Settings.',
-  );
-
-  static const deviceNotSupported = ServiceFailure(
-    kind:             FailureKind.deviceNotSupported,
-    technicalMessage: 'SpeechToText plugin reported device not supported.',
-    userMessage:      'Speech recognition is not available on this device.',
-  );
-
-  static const networkUnavailable = ServiceFailure(
-    kind:             FailureKind.networkUnavailable,
-    technicalMessage: 'No internet connection detected.',
-    userMessage:      'No internet connection. Using offline phrase bank instead.',
-  );
-
-  static const timeout = ServiceFailure(
-    kind:             FailureKind.timeout,
-    technicalMessage: 'Operation exceeded the maximum allowed duration.',
-    userMessage:      'The request took too long. Please try again.',
-  );
-
-  static ServiceFailure apiError(String detail) => ServiceFailure(
-    kind:             FailureKind.apiError,
-    technicalMessage: 'API error: $detail',
-    userMessage:      'Translation failed. Please try again.',
-  );
-
-  static ServiceFailure unknown(Object e) => ServiceFailure(
-    kind:             FailureKind.unknown,
-    technicalMessage: 'Unexpected error: $e',
-    userMessage:      'Something went wrong. Please try again.',
-  );
-
-  @override
-  String toString() => 'ServiceFailure(${kind.name}): $technicalMessage';
 }
