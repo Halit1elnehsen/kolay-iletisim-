@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config/env.dart';
+import 'services/gemini_service.dart';
 import 'providers/translation_provider.dart';
 import 'providers/history_provider.dart';
 import 'providers/settings_provider.dart';
@@ -22,6 +23,9 @@ void main() async {
 
   // Çevre değişkenlerini (API Key) yükle
   await Env.init();
+  
+  // Gemini servisini başlat
+  GeminiService.instance.initialize();
 
   runApp(
     MultiProvider(

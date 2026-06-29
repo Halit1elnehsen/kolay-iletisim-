@@ -1,29 +1,42 @@
 // ============================================================
 // lib/config/env.dart
-// Güvenli API key yönetimi — .env dosyasından okur.
-// ⚠️ Hiçbir zaman API key'i kaynak koduna yazmayın!
 // ============================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Env {
   Env._();
 
-  /// main() içinde runApp'tan önce çağrılmalı.
+  // API key من --dart-define وقت البناء
+  static const String _compiledKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: '',
+  );
+
   static Future<void> init() async {
-    await dotenv.load(fileName: '.env');
+    // بالـ development فقط نحمّل الـ .env
+    if (kDebugMode && _compiledKey.isEmpty) {
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (_) {}
+    }
   }
 
-  /// Gemini API Key — .env dosyasındaki GEMINI_API_KEY değeri.
   static String get geminiApiKey {
-    final key = dotenv.env['GEMINI_API_KEY'];
-    if (key == null || key.isEmpty || key == 'YOUR_GEMINI_API_KEY_HERE') {
-      throw StateError(
-        '⚠️ GEMINI_API_KEY .env dosyasında tanımlanmamış!\n'
-        'Lütfen .env dosyasına şunu ekleyin:\n'
-        'GEMINI_API_KEY=AIza...yourkey...',
-      );
+    // أولاً: من --dart-define (APK release)
+    if (_compiledKey.isNotEmpty) return _compiledKey;
+
+    // ثانياً: من .env (development)
+    final key = dotenv.env['GEMINI_API_KEY'] ?? '';
+    if (key.isEmpty || key == 'YOUR_GEMINI_API_KEY_HERE') {
+      throw StateError('GEMINI_API_KEY غير موجود!');
     }
     return key;
   }
+
+  static const Duration geminiTimeout = Duration(seconds: 15);
+  static const int geminiMaxRetries = 2;
+  static const String geminiBaseUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 }
