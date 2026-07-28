@@ -9,7 +9,8 @@ import 'dart:async';
 import '../models/service_result.dart';
 import '../utils/app_logger.dart';
 import 'audio_service.dart';
-import 'gemini_service.dart';
+import 'gemini_service.dart';          // AppLanguage, TranslationResult enum
+import 'translation_api_service.dart'; // Ücretsiz çeviri servisi
 
 // ---- UI'ın tükettiği state modeli ---- //
 
@@ -195,7 +196,7 @@ class TranslationController {
   // ---- İç çeviri + TTS akışı ---- //
 
   Future<void> _translateAndSpeak(String text) async {
-    final result = await GeminiService.instance.translate(
+    final result = await TranslationApiService.instance.translate(
       text: text,
       source: _state.sourceLanguage,
       target: _state.targetLanguage,

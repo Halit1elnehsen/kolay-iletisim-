@@ -6,7 +6,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/audio_service.dart';
-import '../services/gemini_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,7 +48,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Servisleri başlat
     await AudioService.instance.initialize();
-    GeminiService.instance.initialize();
 
     // Minimum 2 sn splash göster
     await Future.delayed(const Duration(milliseconds: 1500));

@@ -6,7 +6,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'config/env.dart';
 import 'providers/translation_provider.dart';
 import 'providers/history_provider.dart';
 import 'providers/settings_provider.dart';
@@ -19,9 +18,6 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Çevre değişkenlerini (API Key) yükle
-  await Env.init();
 
   runApp(
     MultiProvider(
