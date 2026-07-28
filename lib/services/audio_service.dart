@@ -6,6 +6,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -71,7 +72,9 @@ class AudioService {
       );
 
       // TTS başlat
-      await _tts.setSharedInstance(true);
+      if (!kIsWeb) {
+        await _tts.setSharedInstance(true);
+      }
       await _tts.awaitSpeakCompletion(true);
       _isTtsReady = true;
 

@@ -131,7 +131,7 @@ class TranslationController {
           recognizedText: recognized,
           partialText: '',
         ));
-        await _translateAndSpeak(recognized);
+        await _translate(recognized, autoSpeak: true);
       },
       failure: (msg) {
         _emit(_state.copyWith(
@@ -157,7 +157,7 @@ class TranslationController {
       phase: TranslationPhase.processing,
       recognizedText: text,
     ));
-    await _translateAndSpeak(text);
+    await _translate(text); // Sessiz çeviri
   }
 
   // ---- Son çeviriyi seslendir ---- //
@@ -193,9 +193,9 @@ class TranslationController {
     ));
   }
 
-  // ---- İç çeviri + TTS akışı ---- //
+  // ---- İç çeviri akışı ---- //
 
-  Future<void> _translateAndSpeak(String text) async {
+  Future<void> _translate(String text, {bool autoSpeak = false}) async {
     final result = await TranslationApiService.instance.translate(
       text: text,
       source: _state.sourceLanguage,
@@ -208,8 +208,11 @@ class TranslationController {
           phase: TranslationPhase.success,
           translatedText: translation.translatedText,
         ));
-        // Otomatik seslendir
-        await speakTranslation();
+        
+        // Sadece sesle giriş yapılmışsa veya istenmişse otomatik seslendir
+        if (autoSpeak) {
+          await speakTranslation();
+        }
       },
       failure: (msg) {
         _emit(_state.copyWith(
