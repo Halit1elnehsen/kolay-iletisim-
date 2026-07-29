@@ -6,6 +6,10 @@
 	<string>Sesli çeviri yapabilmek için mikrofona ihtiyacımız var.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Konuşmanızı metne çevirmek için izin gereklidir.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Bulunduğunuz konumu ve yakındaki turistik yerleri haritada göstermek için konum izni gereklidir.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Bulunduğunuz konumu ve yakındaki turistik yerleri haritada göstermek için konum izni gereklidir.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
