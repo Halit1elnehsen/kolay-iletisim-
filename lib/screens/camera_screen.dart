@@ -1,15 +1,14 @@
 // ============================================================
 // lib/screens/camera_screen.dart
-// AR Çeviri Kamerası
+// AR Çeviri Kamerası (Android + Web uyumlu)
 // Çevrilen metni orijinal metnin tam altına yerleştirir.
 // ============================================================
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:html' as html;
-import 'dart:ui_web' as ui_web;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../models/service_result.dart';
@@ -28,11 +27,10 @@ class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
 
   // Camera
-  html.VideoElement? _videoElement;
-  html.MediaStream? _mediaStream;
+  CameraController? _controller;
+  List<CameraDescription> _cameras = [];
   bool _cameraReady = false;
   bool _cameraError = false;
-  final String _viewId = 'camera-preview-${DateTime.now().millisecondsSinceEpoch}';
 
   // Live scan
   Timer? _liveScanTimer;
@@ -71,36 +69,32 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void dispose() {
     _liveScanTimer?.cancel();
-    _stopCamera();
+    _controller?.dispose();
     super.dispose();
   }
 
   Future<void> _initCamera() async {
     try {
-      _videoElement = html.VideoElement()
-        ..autoplay = true
-        ..muted = true
-        ..setAttribute('playsinline', 'true')
-        ..style.width = '100%'
-        ..style.height = '100%'
-        ..style.objectFit = 'cover';
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) {
+        if (mounted) setState(() => _cameraError = true);
+        return;
+      }
 
-      ui_web.platformViewRegistry.registerViewFactory(
-        _viewId,
-        (int viewId) => _videoElement!,
+      // Arka kamerayı bulmaya çalış, yoksa ilkini kullan
+      final backCamera = _cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => _cameras.first,
       );
 
-      _mediaStream = await html.window.navigator.mediaDevices!.getUserMedia({
-        'video': {
-          'facingMode': 'environment',
-          'width': {'ideal': 1280},
-          'height': {'ideal': 720},
-        },
-        'audio': false,
-      });
+      _controller = CameraController(
+        backCamera,
+        ResolutionPreset.medium, // 720p/480p civarı (OCR için daha iyi hız/kalite dengesi)
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
 
-      _videoElement!.srcObject = _mediaStream;
-      await _videoElement!.play();
+      await _controller!.initialize();
 
       if (mounted) {
         setState(() => _cameraReady = true);
@@ -109,11 +103,6 @@ class _CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       if (mounted) setState(() => _cameraError = true);
     }
-  }
-
-  void _stopCamera() {
-    _mediaStream?.getTracks().forEach((track) => track.stop());
-    _mediaStream = null;
   }
 
   // ─── CANLI TARAMA (Her 4 saniyede) ───
@@ -127,13 +116,12 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _scanCurrentFrame() async {
-    if (_videoElement == null || _isScanning) return;
+    if (_controller == null || !_controller!.value.isInitialized || _isScanning) return;
     _isScanning = true;
 
     try {
-      final captureData = _captureFrameBytes();
-      if (captureData == null) { _isScanning = false; return; }
-      final bytes = captureData['bytes'] as Uint8List;
+      final XFile file = await _controller!.takePicture();
+      final bytes = await file.readAsBytes();
 
       // OCR
       final ocrResult = await OcrService.instance.extractTextFromImage(bytes);
@@ -155,31 +143,6 @@ class _CameraScreenState extends State<CameraScreen> {
       }
     } catch (_) {}
     _isScanning = false;
-  }
-
-  Map<String, dynamic>? _captureFrameBytes() {
-    if (_videoElement == null) return null;
-
-    int w = _videoElement!.videoWidth;
-    int h = _videoElement!.videoHeight;
-    if (w == 0 || h == 0) return null;
-
-    // Küçült
-    if (w > 800) {
-      final ratio = 800 / w;
-      w = 800;
-      h = (h * ratio).toInt();
-    }
-
-    final canvas = html.CanvasElement(width: w, height: h);
-    canvas.context2D.drawImageScaled(_videoElement!, 0, 0, w, h);
-    final dataUrl = canvas.toDataUrl('image/jpeg', 0.8);
-    final base64 = dataUrl.split(',').last;
-    return {
-      'bytes': Uint8List.fromList(List<int>.from(html.window.atob(base64).codeUnits)),
-      'width': w.toDouble(),
-      'height': h.toDouble(),
-    };
   }
 
   // ─── OTOMATİK DİL ALGILAMA + ÇEVİRİ ───
@@ -208,16 +171,15 @@ class _CameraScreenState extends State<CameraScreen> {
 
   // ─── FOTOĞRAF ÇEK ───
   Future<void> _capturePhoto() async {
-    if (_videoElement == null || !_cameraReady) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
 
-    final captureData = _captureFrameBytes();
-    if (captureData == null) return;
-
-    final bytes = captureData['bytes'] as Uint8List;
-    final w = captureData['width'] as double;
-    final h = captureData['height'] as double;
-
-    _processCapturedImage(bytes, w, h);
+    try {
+      final XFile file = await _controller!.takePicture();
+      final bytes = await file.readAsBytes();
+      final image = await decodeImageFromList(bytes);
+      
+      _processCapturedImage(bytes, image.width.toDouble(), image.height.toDouble());
+    } catch (_) {}
   }
 
   // ─── GALERİDEN SEÇ ───
@@ -232,7 +194,6 @@ class _CameraScreenState extends State<CameraScreen> {
 
       final bytes = await picked.readAsBytes();
       
-      // Get image dimensions
       final image = await decodeImageFromList(bytes);
       
       _processCapturedImage(bytes, image.width.toDouble(), image.height.toDouble());
@@ -262,7 +223,6 @@ class _CameraScreenState extends State<CameraScreen> {
       // 2. Her satırı tek tek çevir
       List<OcrTextLine> translatedLines = [];
       
-      // Paralel çeviri istekleri atıyoruz hız için
       final translationFutures = lines!.map((line) async {
         final translated = await _autoTranslate(line.text, _targetLang);
         return line.copyWith(translatedText: translated ?? line.text);
@@ -297,52 +257,46 @@ class _CameraScreenState extends State<CameraScreen> {
       body: Stack(
         children: [
           // ─── 1. KAMERA / FOTOĞRAF ───
-          if (_cameraReady && _capturedImage == null)
-            Positioned.fill(child: HtmlElementView(viewType: _viewId))
+          if (_cameraReady && _capturedImage == null && _controller != null)
+            Positioned.fill(
+              child: CameraPreview(_controller!),
+            )
           else if (_capturedImage != null)
             Positioned.fill(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Ekrana sığacak şekilde resmi ölçekle
                   double displayWidth = constraints.maxWidth;
                   double displayHeight = constraints.maxHeight;
                   
-                  // BoxFit.cover davranışı için scale hesabı:
                   double scaleX = displayWidth / _capturedImageWidth;
                   double scaleY = displayHeight / _capturedImageHeight;
                   double scale = scaleX > scaleY ? scaleX : scaleY; // Cover
 
-                  // Resmin gerçek gösterilen boyutları
                   double scaledWidth = _capturedImageWidth * scale;
                   double scaledHeight = _capturedImageHeight * scale;
                   
-                  // Cover nedeniyle merkeze hizalama (kırpılan kısım)
                   double offsetX = (displayWidth - scaledWidth) / 2;
                   double offsetY = (displayHeight - scaledHeight) / 2;
 
                   return Stack(
                     children: [
-                      // Arka Plan Fotoğraf
                       Positioned.fill(
                         child: Image.memory(_capturedImage!, fit: BoxFit.cover),
                       ),
                       
-                      // AR Metin Katmanları (Çevrilen metinler orijinalin altına/üstüne yerleşir)
                       ..._capturedLines.where((l) => l.translatedText != null).map((line) {
-                        // Koordinatları ekrana göre ölçekle
                         double boxLeft = (line.left * scale) + offsetX;
                         double boxTop = (line.top * scale) + offsetY;
                         double boxWidth = line.width * scale;
                         double boxHeight = line.height * scale;
                         
-                        // Metin çok küçükse ekranda okunsun diye min boyut verelim
                         double fontSize = boxHeight * 0.7;
                         if (fontSize < 12) fontSize = 12;
                         if (fontSize > 40) fontSize = 40;
 
                         return Positioned(
-                          left: boxLeft - 10, // Biraz padding payı
-                          top: boxTop + boxHeight - 4, // Orijinal metnin hemen altına hizala
+                          left: boxLeft - 10,
+                          top: boxTop + boxHeight - 4,
                           child: Container(
                             constraints: BoxConstraints(maxWidth: constraints.maxWidth - boxLeft),
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -356,7 +310,7 @@ class _CameraScreenState extends State<CameraScreen> {
                             child: Text(
                               line.translatedText!,
                               style: TextStyle(
-                                color: Colors.white, // AppColors.bgDeep
+                                color: Colors.white,
                                 fontSize: fontSize,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -413,7 +367,7 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
 
-          // ─── 3. CANLI ÇEVİRİ OVERLAY (kamera açıkken) ───
+          // ─── 3. CANLI ÇEVİRİ OVERLAY ───
           if (_capturedImage == null && _liveTranslation.isNotEmpty)
             Positioned(
               top: MediaQuery.of(context).padding.top + 70,
@@ -460,7 +414,6 @@ class _CameraScreenState extends State<CameraScreen> {
             right: 16,
             child: Row(
               children: [
-                // Hedef dil seçici
                 GestureDetector(
                   onTap: _showLanguagePicker,
                   child: Container(
@@ -486,7 +439,6 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                 ),
                 const Spacer(),
-                // X butonu (fotoğraf varsa)
                 if (_capturedImage != null)
                   GestureDetector(
                     onTap: _clearCapture,
@@ -504,7 +456,7 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
           ),
 
-          // ─── 5. ALT BUTONLAR (Kamera açıkken) ───
+          // ─── 5. ALT BUTONLAR ───
           if (!_isProcessingCapture && _capturedImage == null)
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 90,
@@ -515,7 +467,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 children: [
                   _buildSideButton(Icons.photo_library_rounded, _pickFromGallery),
                   const SizedBox(width: 36),
-                  // Çekim butonu
                   GestureDetector(
                     onTap: _capturePhoto,
                     child: Container(
@@ -532,7 +483,6 @@ class _CameraScreenState extends State<CameraScreen> {
                     ),
                   ),
                   const SizedBox(width: 36),
-                  // Canlı tarama aç/kapa
                   _buildSideButton(
                     _liveActive ? Icons.visibility_rounded : Icons.visibility_off_rounded,
                     () => setState(() { _liveActive = !_liveActive; _liveTranslation = ''; _liveOriginal = ''; }),

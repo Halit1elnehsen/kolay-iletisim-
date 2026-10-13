@@ -14,7 +14,7 @@ class GeocodingService {
   Future<String?> getAddressFromCoordinates(double lat, double lon) async {
     try {
       AppLogger.i(_tag, 'Adres çözümleniyor: $lat, $lon');
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon).timeout(
+      List<Placemark> placemarks = await Geocoding().placemarkFromCoordinates(lat, lon).timeout(
         const Duration(seconds: 10),
       );
 

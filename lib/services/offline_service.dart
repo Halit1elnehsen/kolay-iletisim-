@@ -60,9 +60,9 @@ class OfflineService {
       final data = jsonDecode(raw) as Map<String, dynamic>;
       _categoryMeta = List<Map<String, dynamic>>.from(data['categories']);
       _indexLoaded = true;
-      AppLogger.info(_tag, 'Index loaded: ${_categoryMeta.length} categories');
+      AppLogger.i(_tag, 'Index loaded: ${_categoryMeta.length} categories');
     } catch (e) {
-      AppLogger.error(_tag, 'Failed to load phrase index', e);
+      AppLogger.e(_tag, 'Failed to load phrase index', e);
     }
   }
 
@@ -100,11 +100,11 @@ class OfflineService {
       );
 
       _cache[categoryId] = category;
-      AppLogger.info(_tag, 'Loaded category: $categoryId (${phrases.length} phrases)');
+      AppLogger.i(_tag, 'Loaded category: $categoryId (${phrases.length} phrases)');
       return category;
 
     } catch (e) {
-      AppLogger.error(_tag, 'Failed to load category: $categoryId', e);
+      AppLogger.e(_tag, 'Failed to load category: $categoryId', e);
       return null;
     }
   }
@@ -132,13 +132,13 @@ class OfflineService {
       }
     }
 
-    AppLogger.debug(_tag, 'Search "$query" → ${results.length} results');
+    AppLogger.d(_tag, 'Search "$query" → ${results.length} results');
     return results;
   }
 
   /// Clear cache — useful for testing.
   void clearCache() {
     _cache.clear();
-    AppLogger.debug(_tag, 'Cache cleared');
+    AppLogger.d(_tag, 'Cache cleared');
   }
 }

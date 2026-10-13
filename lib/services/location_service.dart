@@ -40,8 +40,10 @@ class LocationService {
 
       AppLogger.i(_tag, 'Konum aranıyor...');
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 15),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ),
       );
       
       AppLogger.i(_tag, 'Konum bulundu: ${position.latitude}, ${position.longitude}');
