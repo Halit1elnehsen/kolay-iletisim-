@@ -1,0 +1,16 @@
+{
+  "phrases": [
+    { "id": "g1", "tr": "Merhaba", "en": "Hello", "ar": "مرحبا" },
+    { "id": "g2", "tr": "Günaydın", "en": "Good morning", "ar": "صباح الخير" },
+    { "id": "g3", "tr": "İyi akşamlar", "en": "Good evening", "ar": "مساء الخير" },
+    { "id": "g4", "tr": "Nasılsınız?", "en": "How are you?", "ar": "كيف حالك؟" },
+    { "id": "g5", "tr": "Teşekkür ederim", "en": "Thank you", "ar": "شكراً لك" },
+    { "id": "g6", "tr": "Rica ederim", "en": "You're welcome", "ar": "على الرحب والسعة" },
+    { "id": "g7", "tr": "Hoşça kalın", "en": "Goodbye", "ar": "مع السلامة" },
+    { "id": "g8", "tr": "Lütfen", "en": "Please", "ar": "من فضلك" },
+    { "id": "g9", "tr": "Evet", "en": "Yes", "ar": "نعم" },
+    { "id": "g10", "tr": "Hayır", "en": "No", "ar": "لا" },
+    { "id": "g11", "tr": "Affedersiniz", "en": "Excuse me", "ar": "عذراً" },
+    { "id": "g12", "tr": "Türkçe bilmiyorum", "en": "I don't speak Turkish", "ar": "لا أتحدث التركية" }
+  ]
+}

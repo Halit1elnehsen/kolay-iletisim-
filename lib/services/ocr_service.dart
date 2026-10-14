@@ -7,6 +7,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import '../config/env.dart';
 import '../models/service_result.dart';
 import '../models/ocr_text_line.dart';
 import '../utils/app_logger.dart';
@@ -16,8 +17,7 @@ class OcrService {
   static final OcrService instance = OcrService._internal();
   static const _tag = 'OcrService';
 
-  // OCR.space ücretsiz API anahtarı
-  static const _apiKey = 'K85674688188957';
+  // OCR.space API anahtarı (Env dosyasından alınır)
   static const _endpoint = 'https://api.ocr.space/parse/image';
 
   /// Fotoğraftan metin çıkarır (base64 olarak gönderir) ve koordinatlarıyla birlikte döner.
@@ -30,7 +30,7 @@ class OcrService {
       final response = await http.post(
         Uri.parse(_endpoint),
         body: {
-          'apikey': _apiKey,
+          'apikey': Env.ocrSpaceApiKey,
           'base64Image': base64Image,
           'language': 'tur', // Türkçe + otomatik algılama
           'isOverlayRequired': 'true', // Koordinat verisi için

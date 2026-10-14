@@ -10,6 +10,10 @@
 	<string>Bulunduğunuz konumu ve yakındaki turistik yerleri haritada göstermek için konum izni gereklidir.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Bulunduğunuz konumu ve yakındaki turistik yerleri haritada göstermek için konum izni gereklidir.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Tabelaları ve metinleri fotoğraftan çevirebilmek için kameraya erişim gereklidir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Galeriden görsel seçip metin çevirisi yapabilmek için fotoğraf arşivine erişim gereklidir.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

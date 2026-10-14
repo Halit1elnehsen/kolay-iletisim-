@@ -1,109 +1,32 @@
 {
-  "version": "1.0.0",
-  "last_updated": "2026-06-28",
-  "supported_languages": ["ar", "tr", "en", "de", "fr", "es", "ru", "zh", "ja"],
   "categories": [
     {
-      "id": "emergency",
-      "file": "emergency.json",
-      "icon": "🚨",
-      "color": "#E74C3C",
-      "label": {
-        "ar": "طوارئ",
-        "tr": "Acil",
-        "en": "Emergency",
-        "de": "Notfall",
-        "fr": "Urgence",
-        "es": "Emergencia",
-        "ru": "Экстренный",
-        "zh": "紧急",
-        "ja": "緊急"
-      }
+      "id": "greetings",
+      "icon": "👋",
+      "color": "#00F0FF",
+      "label": { "tr": "Selamlaşma", "en": "Greetings", "ar": "التحيات" },
+      "file": "greetings.json"
     },
     {
-      "id": "health",
-      "file": "health.json",
-      "icon": "🏥",
-      "color": "#2ECC71",
-      "label": {
-        "ar": "صحة",
-        "tr": "Sağlık",
-        "en": "Health",
-        "de": "Gesundheit",
-        "fr": "Santé",
-        "es": "Salud",
-        "ru": "Здоровье",
-        "zh": "健康",
-        "ja": "健康"
-      }
+      "id": "emergency",
+      "icon": "🚨",
+      "color": "#FF4D8D",
+      "label": { "tr": "Acil Durumlar", "en": "Emergency", "ar": "حالات الطوارئ" },
+      "file": "emergency.json"
     },
     {
       "id": "transport",
-      "file": "transport.json",
-      "icon": "🚗",
-      "color": "#3498DB",
-      "label": {
-        "ar": "مواصلات",
-        "tr": "Ulaşım",
-        "en": "Transport",
-        "de": "Transport",
-        "fr": "Transport",
-        "es": "Transporte",
-        "ru": "Транспорт",
-        "zh": "交通",
-        "ja": "交通"
-      }
+      "icon": "🚌",
+      "color": "#FFD700",
+      "label": { "tr": "Ulaşım", "en": "Transport", "ar": "المواصلات" },
+      "file": "transport.json"
     },
     {
-      "id": "hotel",
-      "file": "hotel.json",
-      "icon": "🏨",
-      "color": "#9B59B6",
-      "label": {
-        "ar": "فندق",
-        "tr": "Otel",
-        "en": "Hotel",
-        "de": "Hotel",
-        "fr": "Hôtel",
-        "es": "Hotel",
-        "ru": "Отель",
-        "zh": "酒店",
-        "ja": "ホテル"
-      }
-    },
-    {
-      "id": "restaurant",
-      "file": "restaurant.json",
+      "id": "food",
       "icon": "🍽️",
-      "color": "#E67E22",
-      "label": {
-        "ar": "مطعم",
-        "tr": "Restoran",
-        "en": "Restaurant",
-        "de": "Restaurant",
-        "fr": "Restaurant",
-        "es": "Restaurante",
-        "ru": "Ресторан",
-        "zh": "餐厅",
-        "ja": "レストラン"
-      }
-    },
-    {
-      "id": "shopping",
-      "file": "shopping.json",
-      "icon": "🛍️",
-      "color": "#1ABC9C",
-      "label": {
-        "ar": "تسوق",
-        "tr": "Alışveriş",
-        "en": "Shopping",
-        "de": "Einkaufen",
-        "fr": "Shopping",
-        "es": "Compras",
-        "ru": "Покупки",
-        "zh": "购物",
-        "ja": "ショッピング"
-      }
+      "color": "#00FFA3",
+      "label": { "tr": "Yemek & Restoran", "en": "Food & Restaurant", "ar": "الطعام والمطعم" },
+      "file": "food.json"
     }
   ]
 }

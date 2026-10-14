@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// ============================================================
+// test/widget_test.dart
+// Temel smoke test — HomeScreen ve Provider entegrasyonu.
+// ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:kolay_iletisim/main.dart';
+import 'package:kolay_iletisim/providers/settings_provider.dart';
+import 'package:kolay_iletisim/providers/history_provider.dart';
+import 'package:kolay_iletisim/providers/translation_provider.dart';
+import 'package:kolay_iletisim/screens/home_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const SpeakBridgeApp());
+  testWidgets('HomeScreen renders with required providers', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => SettingsProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
+          ChangeNotifierProvider(create: (_) => TranslationProvider()),
+        ],
+        child: const MaterialApp(
+          home: HomeScreen(),
+        ),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // İlk kareyi oluştur
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // HomeScreen ve ana başlık render edildi mi?
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Kolay İletişim'), findsOneWidget);
   });
 }

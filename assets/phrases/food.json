@@ -1,0 +1,12 @@
+{
+  "phrases": [
+    { "id": "f1", "tr": "Menüyü görebilir miyim?", "en": "Can I see the menu?", "ar": "هل يمكنني رؤية القائمة؟" },
+    { "id": "f2", "tr": "Hesabı alabilir miyim?", "en": "Can I get the bill?", "ar": "هل يمكنني الحصول على الفاتورة؟" },
+    { "id": "f3", "tr": "Su istiyorum", "en": "I want water", "ar": "أريد ماء" },
+    { "id": "f4", "tr": "Vejetaryen yemek var mı?", "en": "Is there vegetarian food?", "ar": "هل يوجد طعام نباتي؟" },
+    { "id": "f5", "tr": "Çok lezzetli, teşekkürler", "en": "Very delicious, thanks", "ar": "لذيذ جداً، شكراً" },
+    { "id": "f6", "tr": "Kredi kartı kabul ediyor musunuz?", "en": "Do you accept credit cards?", "ar": "هل تقبلون بطاقات الائتمان؟" },
+    { "id": "f7", "tr": "Helal yemek var mı?", "en": "Is there halal food?", "ar": "هل يوجد طعام حلال؟" },
+    { "id": "f8", "tr": "Bir çay / kahve lütfen", "en": "A tea / coffee please", "ar": "شاي / قهوة من فضلك" }
+  ]
+}

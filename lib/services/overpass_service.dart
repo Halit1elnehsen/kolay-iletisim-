@@ -33,7 +33,7 @@ class OverpassService {
       out center 30;
       ''';
 
-      return _executeQuery(query, lat, lon);
+      return await _executeQuery(query, lat, lon);
     } catch (e) {
       AppLogger.w(_tag, 'Overpass hatası: $e');
       return const ServiceFailure('Yer verileri alınırken bir hata oluştu.');
@@ -75,7 +75,7 @@ class OverpassService {
       out center 50;
       ''';
 
-      return _executeQuery(query, centerLat, centerLon);
+      return await _executeQuery(query, centerLat, centerLon);
     } catch (e) {
       AppLogger.w(_tag, 'Overpass bounding box hatası: $e');
       return const ServiceFailure('Bölge verileri alınırken bir hata oluştu.');

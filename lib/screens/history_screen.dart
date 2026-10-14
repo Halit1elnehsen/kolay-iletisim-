@@ -1,6 +1,6 @@
 // ============================================================
 // lib/screens/history_screen.dart
-// Çeviri geçmişi ve favoriler.
+// Çeviri geçmişi ve favoriler — Modern Glassmorphism teması.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -17,34 +17,75 @@ class HistoryScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Geçmiş'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded),
-            onPressed: () => Navigator.pop(context),
-          ),
-          bottom: const TabBar(
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.gray500,
-            indicatorColor: AppColors.primary,
-            tabs: [
-              Tab(text: 'Tümü'),
-              Tab(text: 'Favoriler'),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.delete_sweep_rounded),
-              tooltip: 'Geçmişi Temizle',
-              onPressed: () => _showClearDialog(context),
+        backgroundColor: AppColors.bgDeep,
+        body: Container(
+          decoration: const BoxDecoration(gradient: AppColors.radialBackground),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Custom App Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Çeviri Geçmişi',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.accentRose),
+                        tooltip: 'Geçmişi Temizle',
+                        onPressed: () => _showClearDialog(context),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Tab Bar
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: TabBar(
+                    labelColor: Colors.black,
+                    unselectedLabelColor: AppColors.textSecondary,
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      gradient: AppColors.primaryGradient,
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabs: const [
+                      Tab(text: 'Tümü'),
+                      Tab(text: 'Favoriler ⭐'),
+                    ],
+                  ),
+                ),
+
+                const Expanded(
+                  child: TabBarView(
+                    children: [
+                      _HistoryList(isFavoritesOnly: false),
+                      _HistoryList(isFavoritesOnly: true),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        body: const TabBarView(
-          children: [
-            _HistoryList(isFavoritesOnly: false),
-            _HistoryList(isFavoritesOnly: true),
-          ],
+          ),
         ),
       ),
     );
@@ -54,20 +95,30 @@ class HistoryScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Geçmişi Temizle'),
-        content: const Text('Tüm çeviri geçmişini silmek istediğinize emin misiniz? (Favoriler de silinir)'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: AppColors.bgDeep,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.border),
+        ),
+        title: const Text(
+          'Geçmişi Temizle',
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Tüm çeviri geçmişini silmek istediğinize emin misiniz? (Favoriler de silinir)',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('İptal', style: TextStyle(color: AppColors.gray600)),
+            child: const Text('İptal', style: TextStyle(color: AppColors.textMuted)),
           ),
           TextButton(
             onPressed: () {
               context.read<HistoryProvider>().clearHistory();
               Navigator.pop(ctx);
             },
-            child: const Text('Sil', style: TextStyle(color: AppColors.danger)),
+            child: const Text('Sil', style: TextStyle(color: AppColors.accentRose, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -91,14 +142,14 @@ class _HistoryList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isFavoritesOnly ? Icons.favorite_border_rounded : Icons.history_rounded,
-              size: 64,
-              color: AppColors.gray300,
+              isFavoritesOnly ? Icons.star_border_rounded : Icons.history_rounded,
+              size: 56,
+              color: AppColors.textMuted,
             ),
             const SizedBox(height: 16),
             Text(
-              isFavoritesOnly ? 'Henüz favori çeviriniz yok.' : 'Henüz çeviri yapmadınız.',
-              style: const TextStyle(fontSize: 16, color: AppColors.gray500),
+              isFavoritesOnly ? 'Henüz favori çeviriniz yok.' : 'Henüz çeviri kaydı bulunmuyor.',
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -106,11 +157,10 @@ class _HistoryList extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: records.length,
       itemBuilder: (context, index) {
         final record = records[index];
-        // TODO: Seslendirme için provider'a entegre edilebilir
         return TranslationCard(
           originalText: record.originalText,
           translatedText: record.translatedText,
@@ -125,7 +175,6 @@ class _HistoryList extends StatelessWidget {
     );
   }
 
-  // Basit bayrak eşleştirme yardımcı metodu
   String _getFlag(String code) {
     switch (code) {
       case 'ar': return '🇸🇦';

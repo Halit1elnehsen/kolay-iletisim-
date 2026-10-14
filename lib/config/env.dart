@@ -1,14 +1,15 @@
 // ============================================================
 // lib/config/env.dart
-// Konfigürasyon sabitleri.
-// Ücretsiz API kullanıldığı için artık API key gerekmez.
+// Uygulama ortam değişkenleri ve API anahtarları.
+// Prodüksiyonda --dart-define ile override edilmesi önerilir.
 // ============================================================
 
 class Env {
   Env._();
 
-  /// Gelecekte API key gerekirse buraya eklenebilir.
-  static Future<void> init() async {
-    // Ücretsiz API kullanıyoruz, başlatma gerekmez.
-  }
+  /// OCR.space ücretsiz API anahtarı
+  static const ocrSpaceApiKey = String.fromEnvironment(
+    'OCR_API_KEY',
+    defaultValue: 'K85674688188957',
+  );
 }

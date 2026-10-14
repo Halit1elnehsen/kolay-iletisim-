@@ -6,14 +6,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/translation_provider.dart';
-import '../providers/history_provider.dart';
-import '../models/translation_model.dart';
-import '../services/translation_controller.dart';
+
 import '../theme/app_colors.dart';
-import '../widgets/mic_button.dart';
-import '../widgets/language_selector.dart';
-import '../widgets/translation_card.dart';
 import '../widgets/wave_animation.dart';
+import 'offline_phrases_screen.dart';
+import 'history_screen.dart';
+import 'settings_screen.dart';
 
 class TranslateScreen extends StatelessWidget {
   const TranslateScreen({super.key});
@@ -31,23 +29,69 @@ class TranslateScreen extends StatelessWidget {
           child: Column(
             children: [
               // Header
-              const Padding(
-                padding: EdgeInsets.only(top: 16, bottom: 32),
-                child: Column(
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      'Kolay İletişim',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary, // In real app we might use ShaderMask for gradient text
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Kolay İletişim',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Konuşun, anında çevirin',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Konuşun, anında çevirin',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    Row(
+                      children: [
+                        // Çevrimdışı Kalıplar
+                        _buildHeaderIconBtn(
+                          context: context,
+                          icon: Icons.menu_book_rounded,
+                          tooltip: 'Çevrimdışı Kalıplar',
+                          color: AppColors.accentEmerald,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const OfflinePhrasesScreen()),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Geçmiş
+                        _buildHeaderIconBtn(
+                          context: context,
+                          icon: Icons.history_rounded,
+                          tooltip: 'Geçmiş',
+                          color: AppColors.accentCyan,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Ayarlar
+                        _buildHeaderIconBtn(
+                          context: context,
+                          icon: Icons.settings_rounded,
+                          tooltip: 'Ayarlar',
+                          color: AppColors.accentGold,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -252,6 +296,32 @@ class TranslateScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isPrimary ? Colors.white : AppColors.textPrimary)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderIconBtn({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+          ),
+          child: Icon(icon, color: color, size: 20),
         ),
       ),
     );
