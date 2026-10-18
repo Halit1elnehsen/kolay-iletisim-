@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../models/service_result.dart';
 import '../utils/app_logger.dart';
@@ -53,6 +54,21 @@ class AudioService {
   bool _isReady = false;
   bool _isTtsReady = false;
 
+  Completer<ServiceResult<String>>? _active;
+  String _lastWords = '';
+
+  void _finish() {
+    final c = _active;
+    if (c == null || c.isCompleted) return;
+    _listeningStateController.add(ListeningState.idle);
+    final t = _lastWords.trim();
+    c.complete(
+      t.isNotEmpty
+          ? ServiceSuccess(t)
+          : const ServiceFailure('Konuşma algılanamadı. Tekrar deneyin.'),
+    );
+  }
+
   final _listeningStateController =
       StreamController<ListeningState>.broadcast();
   Stream<ListeningState> get listeningStateStream =>
@@ -67,8 +83,16 @@ class AudioService {
     try {
       // STT başlat
       _isReady = await _stt.initialize(
-        onError: (error) => AppLogger.e(_tag, 'STT Error: ${error.errorMsg}'),
-        onStatus: (status) => AppLogger.d(_tag, 'STT Status: $status'),
+        onError: (error) {
+          AppLogger.e(_tag, 'STT Error: ${error.errorMsg}');
+          _finish();
+        },
+        onStatus: (status) {
+          AppLogger.d(_tag, 'STT Status: $status');
+          if (status == 'done' || status == 'notListening') {
+            _finish();
+          }
+        },
       );
 
       // TTS başlat
@@ -89,14 +113,34 @@ class AudioService {
   // ---- Konuşma Tanıma (STT) ---- //
 
   Future<ServiceResult<String>> startListening(RecognitionConfig config) async {
+    if (!kIsWeb) {
+      final status = await Permission.microphone.status;
+      if (status.isPermanentlyDenied) {
+        return const ServiceFailure(
+          'Mikrofon izni kalıcı olarak reddedildi. Lütfen Ayarlar\'dan izin verin.',
+        );
+      }
+      if (!status.isGranted) {
+        final req = await Permission.microphone.request();
+        if (!req.isGranted) {
+          return const ServiceFailure('Mikrofon izni verilmedi.');
+        }
+      }
+    }
+
     if (!_isReady) {
-      return const ServiceFailure('Ses servisi hazır değil.');
+      await initialize();
+    }
+    if (!_isReady) {
+      return const ServiceFailure('Ses servisi hazır değil. Google Ses Hizmetlerini kontrol edin.');
     }
     if (_stt.isListening) {
       await _stt.stop();
     }
 
+    _lastWords = '';
     final completer = Completer<ServiceResult<String>>();
+    _active = completer;
 
     _listeningStateController.add(ListeningState.listening);
 
@@ -105,38 +149,23 @@ class AudioService {
         localeId: config.localeId,
         listenFor: config.listenFor,
         pauseFor: config.pauseFor,
-        cancelOnError: true,
+        cancelOnError: false,
       ),
       onResult: (SpeechRecognitionResult result) {
-        if (result.hasConfidenceRating && result.confidence > 0) {
-          _partialTextController.add(result.recognizedWords);
-        }
+        _lastWords = result.recognizedWords;
+        _partialTextController.add(_lastWords);
 
         if (result.finalResult) {
           _listeningStateController.add(ListeningState.processing);
-          final text = result.recognizedWords.trim();
-          if (text.isNotEmpty) {
-            if (!completer.isCompleted) {
-              completer.complete(ServiceSuccess(text));
-            }
-          } else {
-            if (!completer.isCompleted) {
-              completer.complete(
-                const ServiceFailure('Konuşma tanınamadı. Tekrar deneyin.'),
-              );
-            }
-          }
+          _finish();
         }
       },
     );
 
     // Timeout
     Future.delayed(config.listenFor + const Duration(seconds: 2), () {
-      if (!completer.isCompleted) {
-        _listeningStateController.add(ListeningState.idle);
-        completer.complete(
-          const ServiceFailure('Zaman aşımı — konuşma algılanamadı.'),
-        );
+      if (_active != null && !_active!.isCompleted) {
+        _finish();
       }
     });
 
@@ -148,8 +177,8 @@ class AudioService {
   Future<void> stopListening() async {
     if (_stt.isListening) {
       await _stt.stop();
-      _listeningStateController.add(ListeningState.idle);
     }
+    _finish();
   }
 
   // ---- Metin-Ses Dönüşümü (TTS) ---- //

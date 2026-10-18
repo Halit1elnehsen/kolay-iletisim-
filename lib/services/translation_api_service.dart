@@ -52,6 +52,12 @@ class TranslationApiService {
       }
     }
 
+    // 3. Hala boşsa → MyMemory yedek servisi dene
+    if (result == null) {
+      AppLogger.i(_tag, 'Yedek çeviri servisi deneniyor (MyMemory)...');
+      result = await _callMyMemory(text, source.code, target.code);
+    }
+
     if (result != null) {
       AppLogger.i(_tag, '✅ Çeviri başarılı: "$result"');
       return ServiceSuccess(
@@ -67,6 +73,28 @@ class TranslationApiService {
     return const ServiceFailure(
       'Çeviri yapılamadı. Lütfen tekrar deneyin.',
     );
+  }
+
+  // ---- MyMemory Free API ---- //
+
+  Future<String?> _callMyMemory(String text, String fromCode, String toCode) async {
+    try {
+      final uri = Uri.parse(
+        'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(text)}&langpair=$fromCode|$toCode',
+      );
+      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final match = json['responseData']?['translatedText']?.toString().trim();
+        if (match != null && match.isNotEmpty && !match.contains('MYMEMORY WARNING')) {
+          AppLogger.d(_tag, 'MyMemory OK ($fromCode→$toCode): "$match"');
+          return match;
+        }
+      }
+    } catch (e) {
+      AppLogger.w(_tag, 'MyMemory hata: $e');
+    }
+    return null;
   }
 
   // ---- Google Translate Free API (gtx) ---- //

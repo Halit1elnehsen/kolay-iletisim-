@@ -44,7 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
             // İçerik
             IndexedStack(
               index: _currentIndex,
-              children: _pages,
+              children: [
+                const TranslateScreen(),
+                _currentIndex == 1 ? const CameraScreen() : const SizedBox.shrink(),
+                const LocationScreen(),
+                const TaxiScreen(),
+              ],
             ),
             
             // Custom Bottom Nav

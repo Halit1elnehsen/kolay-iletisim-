@@ -21,9 +21,12 @@ class OcrService {
   static const _endpoint = 'https://api.ocr.space/parse/image';
 
   /// Fotoğraftan metin çıkarır (base64 olarak gönderir) ve koordinatlarıyla birlikte döner.
-  Future<ServiceResult<List<OcrTextLine>>> extractTextFromImage(Uint8List imageBytes) async {
+  Future<ServiceResult<List<OcrTextLine>>> extractTextFromImage(
+    Uint8List imageBytes, {
+    String language = 'tur',
+  }) async {
     try {
-      AppLogger.i(_tag, 'OCR başlatılıyor (${imageBytes.length} byte)...');
+      AppLogger.i(_tag, 'OCR başlatılıyor (${imageBytes.length} byte, dil: $language)...');
 
       final base64Image = 'data:image/jpeg;base64,${base64Encode(imageBytes)}';
 
@@ -32,7 +35,7 @@ class OcrService {
         body: {
           'apikey': Env.ocrSpaceApiKey,
           'base64Image': base64Image,
-          'language': 'tur', // Türkçe + otomatik algılama
+          'language': language,
           'isOverlayRequired': 'true', // Koordinat verisi için
           'detectOrientation': 'true',
           'scale': 'true',

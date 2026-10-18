@@ -6,6 +6,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/translation_provider.dart';
+import '../providers/history_provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/gemini_service.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/wave_animation.dart';
@@ -19,6 +22,9 @@ class TranslateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TranslationProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final history = context.read<HistoryProvider>();
+    provider.bind(history, settings);
     final state = provider.state;
 
     return Scaffold(
@@ -101,7 +107,11 @@ class TranslateScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildLangBox(provider.source.code.toUpperCase(), provider.source.label),
+                  _buildLangBox(
+                    code: provider.source.code.toUpperCase(),
+                    name: provider.source.label,
+                    onTap: () => _showLanguagePicker(context, isSource: true, provider: provider),
+                  ),
                   const SizedBox(width: 20),
                   GestureDetector(
                     onTap: () => provider.swapLanguages(),
@@ -118,7 +128,11 @@ class TranslateScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 20),
-                  _buildLangBox(provider.target.code.toUpperCase(), provider.target.label),
+                  _buildLangBox(
+                    code: provider.target.code.toUpperCase(),
+                    name: provider.target.label,
+                    onTap: () => _showLanguagePicker(context, isSource: false, provider: provider),
+                  ),
                 ],
               ),
               const SizedBox(height: 28),
@@ -256,24 +270,129 @@ class TranslateScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLangBox(String code, String name) {
-    return Column(
-      children: [
-        Container(
-          width: 64, height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(colors: [Color(0x1A00F0FF), Color(0x1AFFD700)]),
-            border: Border.all(color: AppColors.accentCyan.withOpacity(0.2), width: 2),
-            boxShadow: [BoxShadow(color: AppColors.accentCyan.withOpacity(0.1), blurRadius: 20)],
+  Widget _buildLangBox({
+    required String code,
+    required String name,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(colors: [Color(0x1A00F0FF), Color(0x1AFFD700)]),
+              border: Border.all(color: AppColors.accentCyan.withOpacity(0.3), width: 2),
+              boxShadow: [BoxShadow(color: AppColors.accentCyan.withOpacity(0.15), blurRadius: 20)],
+            ),
+            child: Center(
+              child: Text(code, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            ),
           ),
-          child: Center(
-            child: Text(code, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, color: AppColors.accentCyan, size: 16),
+            ],
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, {required bool isSource, required TranslationProvider provider}) {
+    final currentLang = isSource ? provider.source : provider.target;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
-        const SizedBox(height: 8),
-        Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-      ],
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textMuted.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isSource ? 'Kaynak Dili Seçin' : 'Hedef Dili Seçin',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: AppLanguage.values.map((lang) {
+                  final isSelected = lang == currentLang;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.accentCyan.withOpacity(0.12) : AppColors.glass,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? AppColors.accentCyan : AppColors.border,
+                      ),
+                    ),
+                    child: ListTile(
+                      leading: Text(lang.flag, style: const TextStyle(fontSize: 26)),
+                      title: Text(
+                        lang.label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? AppColors.accentCyan : AppColors.textPrimary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        lang.bcp47,
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle_rounded, color: AppColors.accentCyan)
+                          : null,
+                      onTap: () {
+                        if (isSource) {
+                          provider.setSource(lang);
+                        } else {
+                          provider.setTarget(lang);
+                        }
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 

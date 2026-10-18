@@ -102,7 +102,7 @@ class TranslationController {
 
   // ---- Çeviri başlat (mikrofon) ---- //
 
-  Future<void> startTranslation() async {
+  Future<void> startTranslation({bool autoSpeak = true, double speechRate = 0.45}) async {
     if (_state.phase == TranslationPhase.listening) return;
 
     _emit(_state.copyWith(
@@ -131,7 +131,7 @@ class TranslationController {
           recognizedText: recognized,
           partialText: '',
         ));
-        await _translate(recognized, autoSpeak: true);
+        await _translate(recognized, autoSpeak: autoSpeak, speechRate: speechRate);
       },
       failure: (msg) {
         _emit(_state.copyWith(
@@ -150,24 +150,27 @@ class TranslationController {
 
   // ---- Metin ile çeviri ---- //
 
-  Future<void> translateText(String text) async {
+  Future<void> translateText(String text, {bool autoSpeak = false, double speechRate = 0.45}) async {
     if (text.trim().isEmpty) return;
 
     _emit(_state.copyWith(
       phase: TranslationPhase.processing,
       recognizedText: text,
     ));
-    await _translate(text); // Sessiz çeviri
+    await _translate(text, autoSpeak: autoSpeak, speechRate: speechRate);
   }
 
   // ---- Son çeviriyi seslendir ---- //
 
-  Future<void> speakTranslation() async {
+  Future<void> speakTranslation({double speechRate = 0.45}) async {
     if (_state.translatedText.isEmpty) return;
 
     _emit(_state.copyWith(phase: TranslationPhase.speaking));
 
-    final config = TtsConfig(languageCode: _state.targetLanguage.bcp47);
+    final config = TtsConfig(
+      languageCode: _state.targetLanguage.bcp47,
+      speechRate: speechRate,
+    );
     await AudioService.instance.speak(_state.translatedText, config);
 
     _emit(_state.copyWith(phase: TranslationPhase.success));
@@ -175,10 +178,13 @@ class TranslationController {
 
   // ---- Orijinal metni seslendir ---- //
 
-  Future<void> speakOriginal() async {
+  Future<void> speakOriginal({double speechRate = 0.45}) async {
     if (_state.recognizedText.isEmpty) return;
 
-    final config = TtsConfig(languageCode: _state.sourceLanguage.bcp47);
+    final config = TtsConfig(
+      languageCode: _state.sourceLanguage.bcp47,
+      speechRate: speechRate,
+    );
     await AudioService.instance.speak(_state.recognizedText, config);
   }
 
@@ -195,7 +201,7 @@ class TranslationController {
 
   // ---- İç çeviri akışı ---- //
 
-  Future<void> _translate(String text, {bool autoSpeak = false}) async {
+  Future<void> _translate(String text, {bool autoSpeak = false, double speechRate = 0.45}) async {
     final result = await TranslationApiService.instance.translate(
       text: text,
       source: _state.sourceLanguage,
@@ -211,7 +217,7 @@ class TranslationController {
         
         // Sadece sesle giriş yapılmışsa veya istenmişse otomatik seslendir
         if (autoSpeak) {
-          await speakTranslation();
+          await speakTranslation(speechRate: speechRate);
         }
       },
       failure: (msg) {

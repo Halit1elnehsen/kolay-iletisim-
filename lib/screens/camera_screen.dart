@@ -23,7 +23,7 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
 
   // Camera
@@ -31,6 +31,7 @@ class _CameraScreenState extends State<CameraScreen> {
   List<CameraDescription> _cameras = [];
   bool _cameraReady = false;
   bool _cameraError = false;
+  bool _isFlashOn = false;
 
   // Live scan
   Timer? _liveScanTimer;
@@ -63,14 +64,45 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initCamera();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _liveScanTimer?.cancel();
     _controller?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _liveScanTimer?.cancel();
+      _controller?.dispose();
+      _controller = null;
+      if (mounted) setState(() => _cameraReady = false);
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
+  }
+
+  String _mapOcrLang(String code) {
+    switch (code) {
+      case 'ar': return 'ara';
+      case 'ru': return 'rus';
+      case 'zh': return 'chs';
+      case 'ja': return 'jpn';
+      case 'de': return 'ger';
+      case 'fr': return 'fre';
+      case 'es': return 'spa';
+      case 'en': return 'eng';
+      case 'tr':
+      default:
+        return 'tur';
+    }
   }
 
   Future<void> _initCamera() async {
@@ -89,7 +121,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
       _controller = CameraController(
         backCamera,
-        ResolutionPreset.medium, // 720p/480p civarı (OCR için daha iyi hız/kalite dengesi)
+        ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
@@ -103,6 +135,25 @@ class _CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       if (mounted) setState(() => _cameraError = true);
     }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    try {
+      _isFlashOn = !_isFlashOn;
+      await _controller!.setFlashMode(_isFlashOn ? FlashMode.torch : FlashMode.off);
+      setState(() {});
+    } catch (_) {}
+  }
+
+  Future<void> _onTapToFocus(TapDownDetails details) async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    try {
+      final size = MediaQuery.of(context).size;
+      final point = Offset(details.localPosition.dx / size.width, details.localPosition.dy / size.height);
+      await _controller!.setFocusPoint(point);
+      await _controller!.setFocusMode(FocusMode.auto);
+    } catch (_) {}
   }
 
   // ─── CANLI TARAMA (Her 4 saniyede) ───
@@ -123,8 +174,10 @@ class _CameraScreenState extends State<CameraScreen> {
       final XFile file = await _controller!.takePicture();
       final bytes = await file.readAsBytes();
 
-      // OCR
-      final ocrResult = await OcrService.instance.extractTextFromImage(bytes);
+      final ocrResult = await OcrService.instance.extractTextFromImage(
+        bytes,
+        language: _mapOcrLang(_targetLang == 'tr' ? 'ara' : 'tur'),
+      );
       List<OcrTextLine>? lines;
       ocrResult.when(
         success: (l) => lines = l,
@@ -162,10 +215,27 @@ class _CameraScreenState extends State<CameraScreen> {
           for (var seg in segments) {
             if (seg is List && seg.isNotEmpty) buffer.write(seg[0]);
           }
-          return buffer.toString().trim();
+          final res = buffer.toString().trim();
+          if (res.isNotEmpty) return res;
         }
       }
     } catch (_) {}
+
+    // Fallback: MyMemory
+    try {
+      final uri = Uri.parse(
+        'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(text)}&langpair=auto|$targetCode',
+      );
+      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final match = json['responseData']?['translatedText']?.toString().trim();
+        if (match != null && match.isNotEmpty && !match.contains('MYMEMORY WARNING')) {
+          return match;
+        }
+      }
+    } catch (_) {}
+
     return null;
   }
 
@@ -179,7 +249,16 @@ class _CameraScreenState extends State<CameraScreen> {
       final image = await decodeImageFromList(bytes);
       
       _processCapturedImage(bytes, image.width.toDouble(), image.height.toDouble());
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fotoğraf çekilemedi: $e'),
+            backgroundColor: AppColors.accentRose,
+          ),
+        );
+      }
+    }
   }
 
   // ─── GALERİDEN SEÇ ───
@@ -193,11 +272,19 @@ class _CameraScreenState extends State<CameraScreen> {
       if (picked == null) return;
 
       final bytes = await picked.readAsBytes();
-      
       final image = await decodeImageFromList(bytes);
       
       _processCapturedImage(bytes, image.width.toDouble(), image.height.toDouble());
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Görsel seçilemedi: $e'),
+            backgroundColor: AppColors.accentRose,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _processCapturedImage(Uint8List bytes, double w, double h) async {
@@ -210,25 +297,40 @@ class _CameraScreenState extends State<CameraScreen> {
     });
 
     // 1. OCR ile satırları al
-    final ocrResult = await OcrService.instance.extractTextFromImage(bytes);
+    final ocrResult = await OcrService.instance.extractTextFromImage(
+      bytes,
+      language: _mapOcrLang(_targetLang == 'tr' ? 'ara' : 'tur'),
+    );
+
     List<OcrTextLine>? lines;
     ocrResult.when(
       success: (l) => lines = l,
-      failure: (_) {
-        if (mounted) setState(() => _isProcessingCapture = false);
+      failure: (err) {
+        if (mounted) {
+          setState(() => _isProcessingCapture = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err),
+              backgroundColor: AppColors.accentRose,
+            ),
+          );
+        }
       },
     );
 
     if (lines != null && lines!.isNotEmpty && mounted) {
-      // 2. Her satırı tek tek çevir
-      List<OcrTextLine> translatedLines = [];
-      
-      final translationFutures = lines!.map((line) async {
-        final translated = await _autoTranslate(line.text, _targetLang);
-        return line.copyWith(translatedText: translated ?? line.text);
-      });
+      // 2. Çok satırlı menüler ve tabelalar için satırları \n ile birleştirip TEK istekte çevir
+      final combined = lines!.map((l) => l.text).join('\n');
+      final translatedCombined = await _autoTranslate(combined, _targetLang);
+      final parts = translatedCombined != null ? translatedCombined.split('\n') : <String>[];
 
-      translatedLines = await Future.wait(translationFutures);
+      List<OcrTextLine> translatedLines = [];
+      for (int i = 0; i < lines!.length; i++) {
+        final trans = (i < parts.length && parts[i].trim().isNotEmpty)
+            ? parts[i].trim()
+            : lines![i].text;
+        translatedLines.add(lines![i].copyWith(translatedText: trans));
+      }
 
       if (mounted) {
         setState(() {
@@ -237,7 +339,15 @@ class _CameraScreenState extends State<CameraScreen> {
         });
       }
     } else {
-       if (mounted) setState(() => _isProcessingCapture = false);
+      if (mounted) {
+        setState(() => _isProcessingCapture = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Fotoğrafta okunabilir metin bulunamadı.'),
+            backgroundColor: AppColors.accentGold,
+          ),
+        );
+      }
     }
   }
 
@@ -257,9 +367,21 @@ class _CameraScreenState extends State<CameraScreen> {
       body: Stack(
         children: [
           // ─── 1. KAMERA / FOTOĞRAF ───
-          if (_cameraReady && _capturedImage == null && _controller != null)
+          if (_cameraReady && _capturedImage == null && _controller != null && _controller!.value.isInitialized)
             Positioned.fill(
-              child: CameraPreview(_controller!),
+              child: GestureDetector(
+                onTapDown: _onTapToFocus,
+                child: ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _controller!.value.previewSize!.height,
+                      height: _controller!.value.previewSize!.width,
+                      child: CameraPreview(_controller!),
+                    ),
+                  ),
+                ),
+              ),
             )
           else if (_capturedImage != null)
             Positioned.fill(
@@ -439,6 +561,20 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                 ),
                 const Spacer(),
+                if (_cameraReady && _capturedImage == null)
+                  GestureDetector(
+                    onTap: _toggleFlash,
+                    child: Container(
+                      width: 40, height: 40,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: _isFlashOn ? AppColors.accentGold.withOpacity(0.3) : AppColors.bgDeep.withOpacity(0.85),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _isFlashOn ? AppColors.accentGold : AppColors.border),
+                      ),
+                      child: Icon(_isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded, color: _isFlashOn ? AppColors.accentGold : Colors.white, size: 20),
+                    ),
+                  ),
                 if (_capturedImage != null)
                   GestureDetector(
                     onTap: _clearCapture,

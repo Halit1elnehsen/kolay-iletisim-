@@ -78,7 +78,6 @@ class _TaxiScreenState extends State<TaxiScreen> {
   @override
   void initState() {
     super.initState();
-    AudioService.instance.initialize();
     _fetchLocationAndTaxis();
   }
 

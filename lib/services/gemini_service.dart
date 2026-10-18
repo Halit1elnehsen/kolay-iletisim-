@@ -4,9 +4,6 @@
 // Çeviri artık TranslationApiService üzerinden yapılıyor.
 // ============================================================
 
-import '../models/service_result.dart';
-import '../utils/app_logger.dart';
-
 // ---- Desteklenen Diller ---- //
 
 enum AppLanguage {
