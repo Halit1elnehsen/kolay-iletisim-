@@ -36,45 +36,6 @@ class _TaxiScreenState extends State<TaxiScreen> {
   static const double defaultLat = 38.6748;
   static const double defaultLon = 39.2225;
 
-  // Turist Şoför İletişim Cümleleri
-  final List<Map<String, String>> _phrases = const [
-    {
-      'tr': 'Taksiye ihtiyacım var, lütfen.',
-      'en': 'I need a taxi, please.',
-      'ar': 'أحتاج إلى سيارة أجرة من فضلك.',
-    },
-    {
-      'tr': 'Taksimetreyi açar mısınız?',
-      'en': 'Could you please turn on the meter?',
-      'ar': 'هل يمكنك تشغيل العداد من فضلك؟',
-    },
-    {
-      'tr': 'Beni şehir merkezine götürün.',
-      'en': 'Take me to the city center.',
-      'ar': 'خذني إلى وسط المدينة.',
-    },
-    {
-      'tr': 'En yakın hastaneye gitmem gerekiyor.',
-      'en': 'I need to go to the nearest hospital.',
-      'ar': 'أحتاج إلى الذهاب إلى أقرب مستشفى.',
-    },
-    {
-      'tr': 'Burada durabilir misiniz?',
-      'en': 'Can you stop here, please?',
-      'ar': 'هل يمكنك التوقف هنا من فضلك؟',
-    },
-    {
-      'tr': 'Kredi kartı veya nakit kabul ediyor musunuz?',
-      'en': 'Do you accept credit card or cash?',
-      'ar': 'هل تقبل الدفع بالبطاقة أو نقدًا؟',
-    },
-    {
-      'tr': 'Ücret ne kadar tutar?',
-      'en': 'How much will this ride cost?',
-      'ar': 'كم ستكلف هذه الرحلة؟',
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -146,21 +107,6 @@ class _TaxiScreenState extends State<TaxiScreen> {
     setState(() {
       _filteredTaxis = result;
     });
-  }
-
-  Future<void> _speakPhrase(String turkishText) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Seslendiriliyor: "$turkishText"'),
-        duration: const Duration(seconds: 2),
-        backgroundColor: AppColors.accentGold.withValues(alpha: 0.9),
-      ),
-    );
-
-    await AudioService.instance.speak(
-      turkishText,
-      const TtsConfig(languageCode: 'tr-TR', speechRate: 0.45),
-    );
   }
 
   Future<void> _callTaxi(TaxiStand taxi) async {
@@ -244,16 +190,6 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildTaxiList(),
-                const SizedBox(height: 28),
-
-                // Şoförle İletişim (Hazır Sesli Cümleler)
-                _buildSectionTitle(
-                  'Şoförle İletişim (Sesli Tercüman)',
-                  'Turistler için hayati Türkçe kalıplar',
-                ),
-                const SizedBox(height: 12),
-                _buildPhrasesList(),
-
                 const SizedBox(height: 100), // Alt navigasyon boşluğu
               ],
             ),
@@ -789,91 +725,6 @@ class _TaxiScreenState extends State<TaxiScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPhrasesList() {
-    return Column(
-      children: _phrases.map((phrase) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.glass,
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  color: AppColors.accentGold,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      phrase['tr']!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      phrase['en']!,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Sesli Oynat Butonu
-              InkWell(
-                onTap: () => _speakPhrase(phrase['tr']!),
-                borderRadius: BorderRadius.circular(50),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [AppColors.accentGold, Colors.orange],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accentGold.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      )
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.volume_up_rounded,
-                    color: Colors.black,
-                    size: 18,
-                  ),
-                ),
-              )
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 }

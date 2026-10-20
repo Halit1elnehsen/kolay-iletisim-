@@ -4,6 +4,8 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/translation_provider.dart';
 import '../theme/app_colors.dart';
 import 'translate_screen.dart';
 import 'camera_screen.dart';
@@ -20,14 +22,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const TranslateScreen(),
-    const CameraScreen(),
-    const LocationScreen(),
-    const TaxiScreen(),
-  ];
-
   void _onTabTapped(int index) {
+    if (_currentIndex != index) {
+      context.read<TranslationProvider>().reset();
+    }
     setState(() {
       _currentIndex = index;
     });
@@ -45,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
             IndexedStack(
               index: _currentIndex,
               children: [
-                const TranslateScreen(),
+                _currentIndex == 0 ? const TranslateScreen() : const SizedBox.shrink(),
                 _currentIndex == 1 ? const CameraScreen() : const SizedBox.shrink(),
                 const LocationScreen(),
                 const TaxiScreen(),

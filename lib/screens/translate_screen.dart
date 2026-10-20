@@ -68,10 +68,13 @@ class TranslateScreen extends StatelessWidget {
                           icon: Icons.menu_book_rounded,
                           tooltip: 'Çevrimdışı Kalıplar',
                           color: AppColors.accentEmerald,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const OfflinePhrasesScreen()),
-                          ),
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const OfflinePhrasesScreen()),
+                            );
+                            provider.reset();
+                          },
                         ),
                         const SizedBox(width: 8),
                         // Geçmiş
@@ -80,10 +83,13 @@ class TranslateScreen extends StatelessWidget {
                           icon: Icons.history_rounded,
                           tooltip: 'Geçmiş',
                           color: AppColors.accentCyan,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                          ),
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                            );
+                            provider.reset();
+                          },
                         ),
                         const SizedBox(width: 8),
                         // Ayarlar
@@ -92,10 +98,13 @@ class TranslateScreen extends StatelessWidget {
                           icon: Icons.settings_rounded,
                           tooltip: 'Ayarlar',
                           color: AppColors.accentGold,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                          ),
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                            );
+                            provider.reset();
+                          },
                         ),
                       ],
                     ),
@@ -152,7 +161,24 @@ class TranslateScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('METİN GİRİN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.accentCyan, letterSpacing: 1.5)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('METİN GİRİN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.accentCyan, letterSpacing: 1.5)),
+                        if (provider.textController.text.isNotEmpty || provider.hasTranslation)
+                          GestureDetector(
+                            onTap: () => provider.reset(),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              children: const [
+                                Icon(Icons.close_rounded, size: 14, color: AppColors.accentRose),
+                                SizedBox(width: 4),
+                                Text('Temizle', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accentRose)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: provider.textController,
