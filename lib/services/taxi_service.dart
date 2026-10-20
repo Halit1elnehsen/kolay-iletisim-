@@ -108,30 +108,31 @@ class TaxiService {
     final cleanNumber = phone.replaceAll(RegExp(r'[^0-9+]'), '');
     if (cleanNumber.isEmpty) return false;
 
-    final uri = Uri.parse('tel:$cleanNumber');
     try {
-      if (await canLaunchUrl(uri)) {
-        return await launchUrl(uri);
-      }
+      // tel: arama ekranını açar; kullanıcı yeşil tuşa basar (ek izin gerekmez)
+      return await launchUrl(Uri(scheme: 'tel', path: cleanNumber));
     } catch (e) {
       AppLogger.e(_tag, 'Arama başlatılamadı: $phone', e);
+      return false;
     }
-    return false;
   }
 
   /// Google Haritalar üzerinde rotayı / konumu açar
   Future<bool> openInMaps(double targetLat, double targetLon) async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$targetLat,$targetLon',
+    final web = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$targetLat,$targetLon&travelmode=driving',
     );
     try {
-      if (await canLaunchUrl(uri)) {
-        return await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+      if (await launchUrl(web, mode: LaunchMode.externalApplication)) return true;
+      // Yedek: cihazdaki herhangi bir harita uygulaması
+      return await launchUrl(
+        Uri.parse('geo:$targetLat,$targetLon?q=$targetLat,$targetLon'),
+        mode: LaunchMode.externalApplication,
+      );
     } catch (e) {
       AppLogger.e(_tag, 'Harita açılamadı', e);
+      return false;
     }
-    return false;
   }
 
   /// Kullanıcı koordinatlarına göre dinamik mesafesi hesaplanan doğrulanmış yerel taksi durakları

@@ -750,7 +750,17 @@ class _TaxiScreenState extends State<TaxiScreen> {
 
               // Harita Butonu
               InkWell(
-                onTap: () => TaxiService.instance.openInMaps(taxi.lat, taxi.lon),
+                onTap: () async {
+                  final ok = await TaxiService.instance.openInMaps(taxi.lat, taxi.lon);
+                  if (!ok && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Harita uygulaması açılamadı.'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),

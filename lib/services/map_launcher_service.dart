@@ -18,12 +18,15 @@ class MapLauncherService {
     
     try {
       AppLogger.i(_tag, 'Harita açılıyor: $url');
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (await launchUrl(url, mode: LaunchMode.externalApplication)) {
         return const ServiceSuccess(null);
-      } else {
-        return const ServiceFailure('Harita uygulaması açılamadı.');
       }
+      // Yedek: geo şeması
+      final geoUrl = Uri.parse('geo:$lat,$lon?q=$lat,$lon($label)');
+      if (await launchUrl(geoUrl, mode: LaunchMode.externalApplication)) {
+        return const ServiceSuccess(null);
+      }
+      return const ServiceFailure('Harita uygulaması açılamadı.');
     } catch (e) {
       AppLogger.e(_tag, 'Harita başlatılamadı', e);
       return const ServiceFailure('Harita başlatılırken bir sorun oluştu.');
