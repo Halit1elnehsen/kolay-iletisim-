@@ -87,24 +87,33 @@ class _SplashScreenState extends State<SplashScreen>
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Container(
-                    width: 100,
-                    height: 100,
+                    width: 110,
+                    height: 110,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withOpacity(0.3),
                           blurRadius: 30,
-                          offset: const Offset(0, 10),
+                          offset: const Offset(0, 12),
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.translate_rounded,
-                        size: 48,
-                        color: AppColors.primary,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Image.asset(
+                        'assets/branding/app_logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.white,
+                          child: const Center(
+                            child: Icon(
+                              Icons.public_rounded,
+                              size: 52,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
