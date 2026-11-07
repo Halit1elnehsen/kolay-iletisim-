@@ -8,15 +8,24 @@ Kolay İletişim; seyahat ederken, yeni bir şehirde veya günlük hayatta farkl
 
 ## Arayüz
 
-![Masaüstünde yan menü, dil seçimi ve yan yana çeviri alanları](docs/images/desktop.png)
+### Masaüstü · 1920 × 1080
 
-Masaüstünde yan menü ve iki sütunlu çalışma alanı; telefonda alt gezinme ve dikey yerleşim kullanılır. Lacivert zemin, turkuaz vurgular ve belirgin metin hiyerarşisi, çeviri akışını ön plana çıkarır.
+[![Kolay İletişim masaüstü: yan gezinme, dil seçimi, metin girişi ve gerçek İngilizce–Türkçe çeviri sonucu](docs/images/desktop-hd.jpg)](docs/images/desktop-hd.jpg)
+
+Yan menü ve iki sütunlu çalışma alanı, metni ve çeviri sonucunu birlikte gösterir. Yukarıdaki örnekte çalışan çeviri akışından alınan bir sonuç bulunur.
+
+<details>
+<summary><strong>Mobil görünüm · 1080 × 2700 — görmek için aç</strong></summary>
 
 <p align="center">
-  <img src="docs/images/mobile.png" width="320" alt="Kolay İletişim mobil çeviri ekranı">
+  <a href="docs/images/mobile-hd.jpg"><img src="docs/images/mobile-hd.jpg" width="360" alt="Kolay İletişim mobil görünümü: kaynak dil, çeviri alanları, metni çevir ve konuşarak çevir düğmeleri"></a>
 </p>
 
-Ekran görüntüleri çalışan web sürümünden alınmıştır. Mobilde sayfa kaydırılarak çeviri sonucu ve işlem düğmelerine ulaşılır.
+Telefonda dikey yerleşim ve alt gezinme kullanılır. Uzun ekran görüntüsü giriş alanını, çeviri sonucunu ve işlem düğmelerini birlikte gösterir.
+
+</details>
+
+Görseller uygulamadan yeniden, yüksek çözünürlükte alınmıştır. Tam boy görüntülemek için görsele tıkla.
 
 ## Neler yapabilirsin?
 
