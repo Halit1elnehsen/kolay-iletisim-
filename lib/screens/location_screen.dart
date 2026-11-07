@@ -9,6 +9,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../widgets/location_consent.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/place.dart';
 import '../models/service_result.dart';
@@ -28,6 +29,7 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
+  bool _hasRequestedLocation = false;
   bool _isLoading = true;
   String? _errorMessage;
   Position? _currentPosition;
@@ -40,12 +42,6 @@ class _LocationScreenState extends State<LocationScreen> {
   bool _isSearchingPlaces = false;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchLocationAndPlaces();
-  }
-
-  @override
   void dispose() {
     _positionStream?.cancel();
     _searchDebounce?.cancel();
@@ -55,18 +51,19 @@ class _LocationScreenState extends State<LocationScreen> {
 
   void _startTrackingLocation() {
     _positionStream?.cancel();
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
-    ).listen((Position position) {
-      if (mounted) {
-        setState(() {
-          _currentPosition = position;
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((Position position) {
+          if (mounted) {
+            setState(() {
+              _currentPosition = position;
+            });
+          }
         });
-      }
-    });
   }
 
   Future<void> _fetchLocationAndPlaces() async {
@@ -82,16 +79,19 @@ class _LocationScreenState extends State<LocationScreen> {
         if (!mounted) return;
         _currentPosition = position;
         _startTrackingLocation();
-        
-        final address = await GeocodingService.instance.getAddressFromCoordinates(
-          position.latitude, position.longitude,
-        );
+
+        final address = await GeocodingService.instance
+            .getAddressFromCoordinates(position.latitude, position.longitude);
         if (!mounted) return;
-        _address = address ?? '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
-        
+        _address =
+            address ??
+            '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+
         // İlk yükleme: yakındaki yerleri çek
         final placesResult = await OverpassService.instance.getNearbyPlaces(
-          position.latitude, position.longitude, radius: 1500,
+          position.latitude,
+          position.longitude,
+          radius: 1500,
         );
         if (!mounted) return;
         placesResult.when(
@@ -182,7 +182,9 @@ class _LocationScreenState extends State<LocationScreen> {
         success: (_) {},
         failure: (msg) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(msg)));
           }
         },
       );
@@ -191,15 +193,24 @@ class _LocationScreenState extends State<LocationScreen> {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'museum': return Icons.museum_rounded;
-      case 'hotel': return Icons.hotel_rounded;
-      case 'restaurant': return Icons.restaurant_rounded;
-      case 'cafe': return Icons.coffee_rounded;
-      case 'hospital': return Icons.local_hospital_rounded;
-      case 'pharmacy': return Icons.local_pharmacy_rounded;
-      case 'place_of_worship': return Icons.mosque_rounded;
-      case 'attraction': return Icons.photo_camera_rounded;
-      case 'historic': return Icons.account_balance_rounded;
+      case 'museum':
+        return Icons.museum_rounded;
+      case 'hotel':
+        return Icons.hotel_rounded;
+      case 'restaurant':
+        return Icons.restaurant_rounded;
+      case 'cafe':
+        return Icons.coffee_rounded;
+      case 'hospital':
+        return Icons.local_hospital_rounded;
+      case 'pharmacy':
+        return Icons.local_pharmacy_rounded;
+      case 'place_of_worship':
+        return Icons.mosque_rounded;
+      case 'attraction':
+        return Icons.photo_camera_rounded;
+      case 'historic':
+        return Icons.account_balance_rounded;
       default:
         if (type.startsWith('shop_')) return Icons.shopping_cart_rounded;
         return Icons.place_rounded;
@@ -208,13 +219,22 @@ class _LocationScreenState extends State<LocationScreen> {
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'museum': return AppColors.accentRose;
-      case 'hotel': return const Color(0xFF8B5CF6);
-      case 'restaurant': case 'cafe': return const Color(0xFFF59E0B);
-      case 'hospital': case 'pharmacy': return const Color(0xFFEF4444);
-      case 'place_of_worship': return AppColors.accentCyan;
-      case 'attraction': return const Color(0xFF10B981);
-      case 'historic': return const Color(0xFFEC4899);
+      case 'museum':
+        return AppColors.accentRose;
+      case 'hotel':
+        return const Color(0xFF8B5CF6);
+      case 'restaurant':
+      case 'cafe':
+        return const Color(0xFFF59E0B);
+      case 'hospital':
+      case 'pharmacy':
+        return const Color(0xFFEF4444);
+      case 'place_of_worship':
+        return AppColors.accentCyan;
+      case 'attraction':
+        return const Color(0xFF10B981);
+      case 'historic':
+        return const Color(0xFFEC4899);
       default:
         if (type.startsWith('shop_')) return const Color(0xFF3B82F6);
         return AppColors.accentCyan;
@@ -223,15 +243,24 @@ class _LocationScreenState extends State<LocationScreen> {
 
   String _labelForType(String type) {
     switch (type) {
-      case 'museum': return 'Müze';
-      case 'hotel': return 'Otel';
-      case 'restaurant': return 'Restoran';
-      case 'cafe': return 'Kafe';
-      case 'hospital': return 'Hastane';
-      case 'pharmacy': return 'Eczane';
-      case 'place_of_worship': return 'İbadet Yeri';
-      case 'attraction': return 'Turistik Yer';
-      case 'historic': return 'Tarihi Yer';
+      case 'museum':
+        return 'Müze';
+      case 'hotel':
+        return 'Otel';
+      case 'restaurant':
+        return 'Restoran';
+      case 'cafe':
+        return 'Kafe';
+      case 'hospital':
+        return 'Hastane';
+      case 'pharmacy':
+        return 'Eczane';
+      case 'place_of_worship':
+        return 'İbadet Yeri';
+      case 'attraction':
+        return 'Turistik Yer';
+      case 'historic':
+        return 'Tarihi Yer';
       default:
         if (type.startsWith('shop_')) return 'Market';
         return 'Yer';
@@ -240,11 +269,22 @@ class _LocationScreenState extends State<LocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_hasRequestedLocation) {
+      return LocationConsent(
+        taxi: false,
+        onContinue: () {
+          setState(() => _hasRequestedLocation = true);
+          _fetchLocationAndPlaces();
+        },
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       body: _isLoading
-        ? const Center(child: CircularProgressIndicator(color: AppColors.accentCyan))
-        : _errorMessage != null && _currentPosition == null
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.accentCyan),
+            )
+          : _errorMessage != null && _currentPosition == null
           ? _buildErrorView()
           : _buildMapView(),
     );
@@ -257,7 +297,11 @@ class _LocationScreenState extends State<LocationScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.location_off_rounded, color: AppColors.accentRose, size: 56),
+            const Icon(
+              Icons.location_off_rounded,
+              color: AppColors.accentRose,
+              size: 56,
+            ),
             const SizedBox(height: 16),
             Text(
               _errorMessage!,
@@ -272,8 +316,13 @@ class _LocationScreenState extends State<LocationScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accentCyan,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
               ),
             ),
           ],
@@ -289,7 +338,10 @@ class _LocationScreenState extends State<LocationScreen> {
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            initialCenter: LatLng(
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            ),
             initialZoom: 15.0,
             interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
@@ -307,14 +359,20 @@ class _LocationScreenState extends State<LocationScreen> {
                 // Kullanıcı konumu (mavi halka + beyaz nokta)
                 if (_currentPosition != null)
                   Marker(
-                    point: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                    point: LatLng(
+                      _currentPosition!.latitude,
+                      _currentPosition!.longitude,
+                    ),
                     width: 36,
                     height: 36,
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFF4285F4).withOpacity(0.25),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF4285F4), width: 2),
+                        border: Border.all(
+                          color: const Color(0xFF4285F4),
+                          width: 2,
+                        ),
                       ),
                       child: Center(
                         child: Container(
@@ -343,7 +401,10 @@ class _LocationScreenState extends State<LocationScreen> {
                         decoration: BoxDecoration(
                           color: isSelected ? color : Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: color, width: isSelected ? 3 : 2),
+                          border: Border.all(
+                            color: color,
+                            width: isSelected ? 3 : 2,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: color.withOpacity(0.4),
@@ -352,7 +413,11 @@ class _LocationScreenState extends State<LocationScreen> {
                             ),
                           ],
                         ),
-                        child: Icon(icon, size: isSelected ? 24 : 18, color: isSelected ? Colors.white : color),
+                        child: Icon(
+                          icon,
+                          size: isSelected ? 24 : 18,
+                          color: isSelected ? Colors.white : color,
+                        ),
                       ),
                     ),
                   );
@@ -380,26 +445,39 @@ class _LocationScreenState extends State<LocationScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: const BoxDecoration(
                     color: Color(0xFF4285F4),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.my_location, color: Colors.white, size: 16),
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _address,
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (_isSearchingPlaces)
                   const SizedBox(
-                    width: 18, height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentCyan),
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.accentCyan,
+                    ),
                   ),
               ],
             ),
@@ -409,7 +487,10 @@ class _LocationScreenState extends State<LocationScreen> {
         // ─── 3. SAĞDA BUTONLAR (Konumuma Git + Yenile) ───
         Positioned(
           right: 16,
-          bottom: (_selectedPlace != null ? 220 : 16) + MediaQuery.of(context).padding.bottom + 80,
+          bottom:
+              (_selectedPlace != null ? 220 : 16) +
+              MediaQuery.of(context).padding.bottom +
+              80,
           child: Column(
             children: [
               _buildCircleButton(
@@ -447,7 +528,8 @@ class _LocationScreenState extends State<LocationScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48, height: 48,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: AppColors.bgDeep.withOpacity(0.92),
           shape: BoxShape.circle,
@@ -473,7 +555,11 @@ class _LocationScreenState extends State<LocationScreen> {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withOpacity(0.3)),
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.15), blurRadius: 30, spreadRadius: 2),
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 30,
+            spreadRadius: 2,
+          ),
           BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20),
         ],
       ),
@@ -482,7 +568,8 @@ class _LocationScreenState extends State<LocationScreen> {
         children: [
           // Drag Handle
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: Colors.white24,
@@ -493,7 +580,8 @@ class _LocationScreenState extends State<LocationScreen> {
             children: [
               // İkon
               Container(
-                width: 52, height: 52,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(16),
@@ -521,22 +609,36 @@ class _LocationScreenState extends State<LocationScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: color.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             label,
-                            style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(Icons.directions_walk_rounded, size: 14, color: Colors.white54),
+                        Icon(
+                          Icons.directions_walk_rounded,
+                          size: 14,
+                          color: Colors.white54,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${place.distance < 1000 ? '${place.distance.toInt()}m' : '${(place.distance / 1000).toStringAsFixed(1)}km'}',
-                          style: const TextStyle(color: Colors.white54, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -547,12 +649,17 @@ class _LocationScreenState extends State<LocationScreen> {
               GestureDetector(
                 onTap: _dismissPlaceDetail,
                 child: Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, color: Colors.white54, size: 16),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white54,
+                    size: 16,
+                  ),
                 ),
               ),
             ],

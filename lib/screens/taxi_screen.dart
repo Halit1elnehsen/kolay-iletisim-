@@ -5,6 +5,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import '../widgets/location_consent.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../models/service_result.dart';
@@ -22,6 +23,7 @@ class TaxiScreen extends StatefulWidget {
 }
 
 class _TaxiScreenState extends State<TaxiScreen> {
+  bool _hasRequestedLocation = false;
   bool _isLoading = true;
   String? _errorMessage;
   Position? _currentPosition;
@@ -30,17 +32,12 @@ class _TaxiScreenState extends State<TaxiScreen> {
   List<TaxiStand> _allTaxis = [];
   List<TaxiStand> _filteredTaxis = [];
   String _searchQuery = '';
-  int _selectedFilterIndex = 0; // 0: Tümü, 1: Telefonu Olanlar, 2: Yakındakiler (< 2 km)
+  int _selectedFilterIndex =
+      0; // 0: Tümü, 1: Telefonu Olanlar, 2: Yakındakiler (< 2 km)
 
   // Varsayılan Referans Konum (Elazığ Merkez)
   static const double defaultLat = 38.6748;
   static const double defaultLon = 39.2225;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchLocationAndTaxis();
-  }
 
   Future<void> _fetchLocationAndTaxis() async {
     setState(() {
@@ -133,6 +130,15 @@ class _TaxiScreenState extends State<TaxiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_hasRequestedLocation) {
+      return LocationConsent(
+        taxi: true,
+        onContinue: () {
+          setState(() => _hasRequestedLocation = true);
+          _fetchLocationAndTaxis();
+        },
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -155,20 +161,32 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.amber.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline_rounded, size: 16, color: Colors.amberAccent),
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 16,
+                          color: Colors.amberAccent,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(fontSize: 11, color: Colors.amberAccent),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.amberAccent,
+                            ),
                           ),
                         ),
                       ],
@@ -218,10 +236,7 @@ class _TaxiScreenState extends State<TaxiScreen> {
             SizedBox(height: 2),
             Text(
               'Canlı Duraklar & Tek Tıkla Arama',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -263,7 +278,7 @@ class _TaxiScreenState extends State<TaxiScreen> {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -285,7 +300,7 @@ class _TaxiScreenState extends State<TaxiScreen> {
             color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -296,7 +311,9 @@ class _TaxiScreenState extends State<TaxiScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.accentGold.withValues(alpha: 0.15),
-              border: Border.all(color: AppColors.accentGold.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.accentGold.withValues(alpha: 0.3),
+              ),
             ),
             child: const Icon(
               Icons.my_location_rounded,
@@ -312,7 +329,9 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 Row(
                   children: [
                     Text(
-                      _isUsingFallbackLocation ? 'Bölge Konumu' : 'Mevcut Konumunuz',
+                      _isUsingFallbackLocation
+                          ? 'Bölge Konumu'
+                          : 'Mevcut Konumunuz',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -323,9 +342,12 @@ class _TaxiScreenState extends State<TaxiScreen> {
                       const SizedBox(width: 6),
                       const Text(
                         '(Elazığ)',
-                        style: TextStyle(fontSize: 12, color: Colors.amberAccent),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.amberAccent,
+                        ),
                       ),
-                    ]
+                    ],
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -377,10 +399,18 @@ class _TaxiScreenState extends State<TaxiScreen> {
         decoration: InputDecoration(
           hintText: 'Durak veya cadde adı ara...',
           hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.textMuted,
+            size: 20,
+          ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, color: AppColors.textMuted, size: 18),
+                  icon: const Icon(
+                    Icons.clear_rounded,
+                    color: AppColors.textMuted,
+                    size: 18,
+                  ),
                   onPressed: () {
                     setState(() {
                       _searchQuery = '';
@@ -390,7 +420,10 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -495,7 +528,11 @@ class _TaxiScreenState extends State<TaxiScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.local_taxi_outlined, size: 44, color: AppColors.accentGold.withValues(alpha: 0.5)),
+            Icon(
+              Icons.local_taxi_outlined,
+              size: 44,
+              color: AppColors.accentGold.withValues(alpha: 0.5),
+            ),
             const SizedBox(height: 10),
             const Text(
               'Bu kriterlere uygun taksi durağı bulunamadı.',
@@ -510,7 +547,10 @@ class _TaxiScreenState extends State<TaxiScreen> {
                   _applyFilters();
                 });
               },
-              child: const Text('Filtreleri Temizle', style: TextStyle(color: AppColors.accentGold)),
+              child: const Text(
+                'Filtreleri Temizle',
+                style: TextStyle(color: AppColors.accentGold),
+              ),
             ),
           ],
         ),
@@ -535,7 +575,7 @@ class _TaxiScreenState extends State<TaxiScreen> {
             color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 10,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -551,7 +591,9 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.accentGold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.accentGold.withValues(alpha: 0.25)),
+                  border: Border.all(
+                    color: AppColors.accentGold.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Center(
                   child: Icon(
@@ -587,7 +629,7 @@ class _TaxiScreenState extends State<TaxiScreen> {
                             color: AppColors.accentCyan,
                             size: 16,
                           ),
-                        ]
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -606,11 +648,16 @@ class _TaxiScreenState extends State<TaxiScreen> {
               const SizedBox(width: 8),
               // Canlı Mesafe Rozeti
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.accentEmerald.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.accentEmerald.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.accentEmerald.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -646,7 +693,10 @@ class _TaxiScreenState extends State<TaxiScreen> {
                   onTap: () => _callTaxi(taxi),
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 12,
+                    ),
                     decoration: BoxDecoration(
                       gradient: taxi.hasPhone
                           ? const LinearGradient(
@@ -662,7 +712,9 @@ class _TaxiScreenState extends State<TaxiScreen> {
                         Icon(
                           Icons.phone_in_talk_rounded,
                           size: 16,
-                          color: taxi.hasPhone ? Colors.white : AppColors.textMuted,
+                          color: taxi.hasPhone
+                              ? Colors.white
+                              : AppColors.textMuted,
                         ),
                         const SizedBox(width: 6),
                         Flexible(
@@ -671,7 +723,9 @@ class _TaxiScreenState extends State<TaxiScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: taxi.hasPhone ? Colors.white : AppColors.textMuted,
+                              color: taxi.hasPhone
+                                  ? Colors.white
+                                  : AppColors.textMuted,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -687,7 +741,10 @@ class _TaxiScreenState extends State<TaxiScreen> {
               // Harita Butonu
               InkWell(
                 onTap: () async {
-                  final ok = await TaxiService.instance.openInMaps(taxi.lat, taxi.lon);
+                  final ok = await TaxiService.instance.openInMaps(
+                    taxi.lat,
+                    taxi.lon,
+                  );
                   if (!ok && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -699,7 +756,10 @@ class _TaxiScreenState extends State<TaxiScreen> {
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.bgCardHover,
                     borderRadius: BorderRadius.circular(12),
@@ -707,7 +767,11 @@ class _TaxiScreenState extends State<TaxiScreen> {
                   ),
                   child: Row(
                     children: const [
-                      Icon(Icons.directions_rounded, size: 16, color: AppColors.accentGold),
+                      Icon(
+                        Icons.directions_rounded,
+                        size: 16,
+                        color: AppColors.accentGold,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         'Rota',

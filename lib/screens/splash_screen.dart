@@ -5,7 +5,6 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../services/audio_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,14 +29,24 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0, 0.5, curve: Curves.easeIn)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0, 0.5, curve: Curves.easeIn),
+      ),
     );
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0, 0.6, curve: Curves.elasticOut)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0, 0.6, curve: Curves.elasticOut),
+      ),
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.3, 0.8, curve: Curves.easeOut)),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+          ),
+        );
 
     _controller.forward();
     _initializeServices();
@@ -47,7 +56,6 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 500));
 
     // Servisleri başlat
-    await AudioService.instance.initialize();
 
     // Minimum 2 sn splash göster
     await Future.delayed(const Duration(milliseconds: 1500));
@@ -73,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+            colors: [AppColors.bgDeep, AppColors.bgLighter, AppColors.bgDarker],
           ),
         ),
         child: SafeArea(

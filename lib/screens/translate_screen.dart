@@ -1,17 +1,11 @@
-// ============================================================
-// lib/screens/translate_screen.dart
-// Ana çeviri ekranı — Mikrofon, çeviri kartı, metin girişi.
-// ============================================================
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/translation_provider.dart';
 import '../providers/history_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/gemini_service.dart';
-
 import '../theme/app_colors.dart';
-import '../widgets/wave_animation.dart';
 import 'offline_phrases_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
@@ -19,454 +13,558 @@ import 'settings_screen.dart';
 class TranslateScreen extends StatelessWidget {
   const TranslateScreen({super.key});
 
+  Future<void> _open(BuildContext context, Widget screen) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TranslationProvider>();
-    final settings = context.watch<SettingsProvider>();
-    final history = context.read<HistoryProvider>();
-    provider.bind(history, settings);
-    final state = provider.state;
-
+    provider.bind(
+      context.read<HistoryProvider>(),
+      context.watch<SettingsProvider>(),
+    );
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.bgDeep,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Kolay İletişim',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Konuşun, anında çevirin',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        // Çevrimdışı Kalıplar
-                        _buildHeaderIconBtn(
-                          context: context,
-                          icon: Icons.menu_book_rounded,
-                          tooltip: 'Çevrimdışı Kalıplar',
-                          color: AppColors.accentEmerald,
-                          onTap: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const OfflinePhrasesScreen()),
-                            );
-                            provider.reset();
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        // Geçmiş
-                        _buildHeaderIconBtn(
-                          context: context,
-                          icon: Icons.history_rounded,
-                          tooltip: 'Geçmiş',
-                          color: AppColors.accentCyan,
-                          onTap: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                            );
-                            provider.reset();
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        // Ayarlar
-                        _buildHeaderIconBtn(
-                          context: context,
-                          icon: Icons.settings_rounded,
-                          tooltip: 'Ayarlar',
-                          color: AppColors.accentGold,
-                          onTap: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                            );
-                            provider.reset();
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 740;
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                wide ? 40 : 20,
+                24,
+                wide ? 40 : 20,
+                32,
               ),
-
-              // Dil Seçici (Custom UI to match HTML)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildLangBox(
-                    code: provider.source.code.toUpperCase(),
-                    name: provider.source.label,
-                    onTap: () => _showLanguagePicker(context, isSource: true, provider: provider),
-                  ),
-                  const SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () => provider.swapLanguages(),
-                    child: Container(
-                      width: 48, height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppColors.cyanRoseGradient,
-                        boxShadow: [
-                          BoxShadow(color: AppColors.accentCyan.withOpacity(0.3), blurRadius: 20, offset: const Offset(0,4))
-                        ]
-                      ),
-                      child: const Icon(Icons.swap_horiz_rounded, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  _buildLangBox(
-                    code: provider.target.code.toUpperCase(),
-                    name: provider.target.label,
-                    onTap: () => _showLanguagePicker(context, isSource: false, provider: provider),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // Input Area
-              Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0x0C00F0FF), Color(0x08FFD700)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(color: AppColors.accentCyan.withOpacity(0.15)),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                padding: const EdgeInsets.all(22),
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('METİN GİRİN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.accentCyan, letterSpacing: 1.5)),
-                        if (provider.textController.text.isNotEmpty || provider.hasTranslation)
-                          GestureDetector(
-                            onTap: () => provider.reset(),
-                            behavior: HitTestBehavior.opaque,
-                            child: Row(
-                              children: const [
-                                Icon(Icons.close_rounded, size: 14, color: AppColors.accentRose),
-                                SizedBox(width: 4),
-                                Text('Temizle', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accentRose)),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: provider.textController,
-                      style: const TextStyle(fontSize: 18, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-                      maxLines: 3,
-                      minLines: 2,
-                      decoration: const InputDecoration(
-                        hintText: 'Çevirmek istediğiniz metni yazın veya konuşun...',
-                        hintStyle: TextStyle(color: AppColors.textMuted),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Output Area
-              if (provider.hasTranslation)
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0x0CFFD700), Color(0x08FF4D8D)],
-                      begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(color: AppColors.accentGold.withOpacity(0.15)),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: AppColors.accentGold.withOpacity(0.05), blurRadius: 30)],
-                  ),
-                  padding: const EdgeInsets.all(22),
-                  margin: const EdgeInsets.only(bottom: 28),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('ÇEVİRİ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.accentGold, letterSpacing: 1.5)),
-                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          if (!wide)
+                            const Icon(
+                              Icons.forum_rounded,
+                              color: AppColors.accentCyan,
+                              size: 26,
+                            ),
+                          if (!wide) const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'Kolay İletişim',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Çeviri geçmişi',
+                            onPressed: () =>
+                                _open(context, const HistoryScreen()),
+                            icon: const Icon(
+                              Icons.history_rounded,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Ayarlar',
+                            onPressed: () =>
+                                _open(context, const SettingsScreen()),
+                            icon: const Icon(
+                              Icons.tune_rounded,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: wide ? 48 : 32),
                       Text(
-                        state.translatedText,
-                        style: const TextStyle(fontSize: 18, color: AppColors.accentGold, fontWeight: FontWeight.w600),
+                        'Kelimelerin ötesinde,',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: wide ? 42 : 30,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.2,
+                          height: 1.2,
+                        ),
+                      ),
+                      Text(
+                        'birbirimizi anlayalım.',
+                        style: TextStyle(
+                          color: AppColors.accentCyan,
+                          fontSize: wide ? 42 : 30,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.2,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Yaz, konuş veya kameranla çevir. İletişime yer aç.',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 15,
+                          height: 1.6,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgDarker,
+                          border: Border.all(color: AppColors.border),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(child: _language(context, provider, true)),
+                            IconButton(
+                              tooltip: 'Dillerin yerini değiştir',
+                              onPressed: provider.isProcessing
+                                  ? null
+                                  : provider.swapLanguages,
+                              icon: const Icon(
+                                Icons.swap_horiz_rounded,
+                                color: AppColors.accentCyan,
+                              ),
+                            ),
+                            Expanded(
+                              child: _language(context, provider, false),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (wide)
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(child: _input(provider)),
+                              const SizedBox(width: 16),
+                              Expanded(child: _output(context, provider)),
+                            ],
+                          ),
+                        )
+                      else ...[
+                        _input(provider),
+                        const SizedBox(height: 16),
+                        _output(context, provider),
+                      ],
+                      if (provider.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Semantics(
+                            liveRegion: true,
+                            child: Text(
+                              provider.error,
+                              style: const TextStyle(
+                                color: AppColors.accentRose,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          FilledButton.icon(
+                            onPressed:
+                                provider.isProcessing || provider.isListening
+                                ? null
+                                : provider.translateText,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.accentCyan,
+                              foregroundColor: AppColors.bgDeep,
+                              minimumSize: const Size(150, 52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            icon: provider.isProcessing
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.bgDeep,
+                                    ),
+                                  )
+                                : const Icon(Icons.translate_rounded, size: 20),
+                            label: Text(
+                              provider.isProcessing
+                                  ? 'Çevriliyor…'
+                                  : 'Metni çevir',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: provider.isProcessing
+                                ? null
+                                : () => provider.isListening
+                                      ? provider.stopListening()
+                                      : provider.startListening(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: provider.isListening
+                                  ? AppColors.accentRose
+                                  : AppColors.textPrimary,
+                              minimumSize: const Size(150, 52),
+                              side: const BorderSide(
+                                color: AppColors.borderHover,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            icon: Icon(
+                              provider.isListening
+                                  ? Icons.stop_rounded
+                                  : Icons.mic_none_rounded,
+                            ),
+                            label: Text(
+                              provider.isListening
+                                  ? 'Dinlemeyi bitir'
+                                  : 'Konuşarak çevir',
+                            ),
+                          ),
+                          if (provider.isListening)
+                            Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                'Dinleniyor…',
+                                style: TextStyle(color: AppColors.accentCyan),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      const Divider(color: AppColors.border),
+                      const SizedBox(height: 18),
+                      InkWell(
+                        onTap: () =>
+                            _open(context, const OfflinePhrasesScreen()),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 4,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bgCard,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.menu_book_outlined,
+                                  color: AppColors.accentGold,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Her yolculukta işine yarar',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'İnternetsiz kullanabileceğin hazır cümleler',
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-
-              // Mic & Status
-              if (provider.isListening)
-                WaveAnimation(isActive: true, color: AppColors.accentCyan, height: 40)
-              else if (provider.hasError)
-                Text(provider.error, style: const TextStyle(color: AppColors.accentRose)),
-              
-              const SizedBox(height: 16),
-              
-              // Mic Button
-              GestureDetector(
-                onTap: () {
-                  if (provider.isListening) {
-                    provider.stopListening();
-                  } else {
-                    provider.startListening();
-                  }
-                },
-                child: Container(
-                  width: 84, height: 84,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppColors.primaryGradient,
-                    border: Border.all(color: AppColors.accentCyan.withOpacity(0.3), width: 4),
-                    boxShadow: [
-                      BoxShadow(color: AppColors.accentCyan.withOpacity(0.4), blurRadius: 40, offset: const Offset(0, 8)),
-                    ]
-                  ),
-                  child: Icon(
-                    provider.isListening ? Icons.stop_rounded : Icons.mic_rounded, 
-                    color: Colors.white, size: 32
-                  ),
-                ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                provider.isListening ? 'Dinleniyor...' : 'Konuşmak için basın',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionBtn(
-                      icon: Icons.send_rounded,
-                      label: 'Çevir',
-                      isPrimary: true,
-                      onTap: () => provider.translateText(),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionBtn(
-                      icon: Icons.volume_up_rounded,
-                      label: 'Dinle',
-                      isPrimary: false,
-                      onTap: () => provider.speakTranslation(),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 100), // Bottom nav padding
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildLangBox({
-    required String code,
-    required String name,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
+  Widget _language(
+    BuildContext context,
+    TranslationProvider provider,
+    bool source,
+  ) {
+    final lang = source ? provider.source : provider.target;
+    return TextButton(
+      onPressed: provider.isProcessing
+          ? null
+          : () => _pickLanguage(context, provider, source),
+      style: TextButton.styleFrom(
+        alignment: Alignment.centerLeft,
+        foregroundColor: AppColors.textPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+      child: Row(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: [Color(0x1A00F0FF), Color(0x1AFFD700)]),
-              border: Border.all(color: AppColors.accentCyan.withOpacity(0.3), width: 2),
-              boxShadow: [BoxShadow(color: AppColors.accentCyan.withOpacity(0.15), blurRadius: 20)],
-            ),
-            child: Center(
-              child: Text(code, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  source ? 'Kaynak dil' : 'Çeviri dili',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  lang.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down, color: AppColors.accentCyan, size: 16),
-            ],
+          const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 20,
+            color: AppColors.textSecondary,
           ),
         ],
       ),
     );
   }
 
-  void _showLanguagePicker(BuildContext context, {required bool isSource, required TranslationProvider provider}) {
-    final currentLang = isSource ? provider.source : provider.target;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 44,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textMuted.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              isSource ? 'Kaynak Dili Seçin' : 'Hedef Dili Seçin',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: AppLanguage.values.map((lang) {
-                  final isSelected = lang == currentLang;
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.accentCyan.withOpacity(0.12) : AppColors.glass,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected ? AppColors.accentCyan : AppColors.border,
-                      ),
-                    ),
-                    child: ListTile(
-                      leading: Text(lang.flag, style: const TextStyle(fontSize: 26)),
-                      title: Text(
-                        lang.label,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? AppColors.accentCyan : AppColors.textPrimary,
-                        ),
-                      ),
-                      subtitle: Text(
-                        lang.bcp47,
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                      ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: AppColors.accentCyan)
-                          : null,
-                      onTap: () {
-                        if (isSource) {
-                          provider.setSource(lang);
-                        } else {
-                          provider.setTarget(lang);
-                        }
-                        Navigator.pop(ctx);
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+  Widget _panel({required Widget child, bool highlighted = false}) => Container(
+    constraints: const BoxConstraints(minHeight: 244),
+    padding: const EdgeInsets.all(22),
+    decoration: BoxDecoration(
+      color: highlighted ? const Color(0xFF162F36) : AppColors.bgCard,
+      border: Border.all(
+        color: highlighted ? const Color(0xFF325D61) : AppColors.border,
       ),
-    );
-  }
+      borderRadius: BorderRadius.circular(18),
+    ),
+    child: child,
+  );
 
-  Widget _buildActionBtn({required IconData icon, required String label, required bool isPrimary, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: isPrimary ? AppColors.primaryGradient : null,
-          color: isPrimary ? null : AppColors.glass,
-          border: isPrimary ? null : Border.all(color: AppColors.border),
-          boxShadow: isPrimary ? [BoxShadow(color: AppColors.accentCyan.withOpacity(0.3), blurRadius: 20, offset: const Offset(0,4))] : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _input(TranslationProvider provider) => _panel(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Icon(icon, color: isPrimary ? Colors.white : AppColors.textPrimary, size: 18),
-            const SizedBox(width: 8),
-            Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isPrimary ? Colors.white : AppColors.textPrimary)),
+            const Expanded(
+              child: Text(
+                'Senin cümlelerin',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Metni temizle',
+              onPressed: provider.reset,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderIconBtn({
-    required BuildContext context,
-    required IconData icon,
-    required String tooltip,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.25)),
+        const SizedBox(height: 12),
+        TextField(
+          controller: provider.textController,
+          minLines: 4,
+          maxLines: 8,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20,
+            height: 1.6,
           ),
-          child: Icon(icon, color: color, size: 20),
+          textDirection: provider.source == AppLanguage.arabic
+              ? TextDirection.rtl
+              : TextDirection.ltr,
+          decoration: const InputDecoration(
+            hintText: 'Ne söylemek istersin?',
+            filled: false,
+            hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 20),
+            contentPadding: EdgeInsets.zero,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _output(BuildContext context, TranslationProvider provider) => _panel(
+    highlighted: true,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Çevirin',
+                style: TextStyle(
+                  color: AppColors.accentCyan,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Çeviriyi dinle',
+              onPressed: provider.hasTranslation && !provider.isSpeaking
+                  ? provider.speakTranslation
+                  : null,
+              icon: Icon(
+                Icons.volume_up_outlined,
+                size: 20,
+                color: provider.hasTranslation
+                    ? AppColors.accentCyan
+                    : AppColors.textMuted,
+              ),
+            ),
+            IconButton(
+              tooltip: 'Çeviriyi kopyala',
+              onPressed: !provider.hasTranslation
+                  ? null
+                  : () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: provider.state.translatedText),
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Çeviri kopyalandı.')),
+                        );
+                      }
+                    },
+              icon: Icon(
+                Icons.copy_rounded,
+                size: 18,
+                color: provider.hasTranslation
+                    ? AppColors.accentCyan
+                    : AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Semantics(
+          liveRegion: true,
+          child: SelectableText(
+            provider.hasTranslation
+                ? provider.state.translatedText
+                : 'Yeni bir dilde, aynı sen.',
+            textDirection:
+                provider.hasTranslation && provider.target == AppLanguage.arabic
+                ? TextDirection.rtl
+                : TextDirection.ltr,
+            style: TextStyle(
+              color: provider.hasTranslation
+                  ? AppColors.textPrimary
+                  : AppColors.textMuted,
+              fontSize: 20,
+              height: 1.6,
+            ),
+          ),
+        ),
+        if (!provider.hasTranslation)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Çevirin burada görünecek.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ),
+      ],
+    ),
+  );
+
+  void _pickLanguage(
+    BuildContext context,
+    TranslationProvider provider,
+    bool source,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgDeep,
+      showDragHandle: true,
+      constraints: const BoxConstraints(maxWidth: 520),
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                source ? 'Kaynak dili seç' : 'Çeviri dilini seç',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            for (final lang in AppLanguage.values)
+              ListTile(
+                textColor: AppColors.textPrimary,
+                title: Text(lang.label),
+                trailing: (source ? provider.source : provider.target) == lang
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: AppColors.accentCyan,
+                      )
+                    : null,
+                onTap: () {
+                  source ? provider.setSource(lang) : provider.setTarget(lang);
+                  Navigator.pop(context);
+                },
+              ),
+          ],
         ),
       ),
     );

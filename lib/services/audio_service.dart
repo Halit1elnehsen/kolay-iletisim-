@@ -25,7 +25,7 @@ class RecognitionConfig {
   const RecognitionConfig({
     this.localeId = 'ar-SA',
     this.listenFor = const Duration(seconds: 30),
-    this.pauseFor  = const Duration(seconds: 3),
+    this.pauseFor = const Duration(seconds: 3),
   });
 }
 
@@ -37,9 +37,9 @@ class TtsConfig {
 
   const TtsConfig({
     this.languageCode = 'tr-TR',
-    this.speechRate   = 0.45,
-    this.volume       = 1.0,
-    this.pitch        = 1.0,
+    this.speechRate = 0.45,
+    this.volume = 1.0,
+    this.pitch = 1.0,
   });
 }
 
@@ -96,11 +96,7 @@ class AudioService {
       );
 
       // TTS başlat
-      if (!kIsWeb) {
-        await _tts.setSharedInstance(true);
-      }
-      await _tts.awaitSpeakCompletion(true);
-      _isTtsReady = true;
+      await _initializeTts();
 
       AppLogger.i(_tag, 'Başlatıldı — STT: $_isReady | TTS: $_isTtsReady');
       return const ServiceSuccess(null);
@@ -132,7 +128,9 @@ class AudioService {
       await initialize();
     }
     if (!_isReady) {
-      return const ServiceFailure('Ses servisi hazır değil. Google Ses Hizmetlerini kontrol edin.');
+      return const ServiceFailure(
+        'Ses servisi hazır değil. Google Ses Hizmetlerini kontrol edin.',
+      );
     }
     if (_stt.isListening) {
       await _stt.stop();
@@ -184,10 +182,8 @@ class AudioService {
   // ---- Metin-Ses Dönüşümü (TTS) ---- //
 
   Future<ServiceResult<void>> speak(String text, TtsConfig config) async {
-    if (!_isTtsReady) {
-      return const ServiceFailure('TTS servisi hazır değil.');
-    }
     try {
+      await _initializeTts();
       await _tts.setLanguage(config.languageCode);
       await _tts.setSpeechRate(config.speechRate);
       await _tts.setVolume(config.volume);
@@ -201,7 +197,14 @@ class AudioService {
   }
 
   Future<void> stopSpeaking() async {
-    await _tts.stop();
+    if (_isTtsReady) await _tts.stop();
+  }
+
+  Future<void> _initializeTts() async {
+    if (_isTtsReady) return;
+    if (!kIsWeb) await _tts.setSharedInstance(true);
+    await _tts.awaitSpeakCompletion(true);
+    _isTtsReady = true;
   }
 
   Future<List<String>> getAvailableLanguages() async {
